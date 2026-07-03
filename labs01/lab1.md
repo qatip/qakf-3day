@@ -470,8 +470,10 @@ status: {}
 ```
 
 ```
+kubectl apply -f dep.yaml
 kubectl expose deploy hello --type=NodePort
 ```
+
 You haven’t created an "Expose" controller, you’ve created a Service, which provides access to pods running inside the cluster via a single name or IP address. You can expose a pod, or a rs, or a deployment, or other kinds of controllers. In this case, you’ve created a NodePort service, which has exposed our service at a high-numbered port on every node in the cluster.
 
 22. Let’s see if it has worked, by `get`ting the new service: 
