@@ -1,0 +1,19 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: randoms
+spec:
+  completions: 10
+  parallelism: 3
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: example
+        image: python
+        command:
+        - python3
+        - -c
+        - |
+          import random
+          print(random.randrange(1,100))

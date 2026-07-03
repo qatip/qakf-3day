@@ -1,14 +1,42 @@
-# Lab 5 - DaemonSets, Jobs and Helm
+# Lab 5 - Security
+## 5.1 RBAC
 
-## 5.1 DaemonSets
+We're going to create a pod that prints all of the logs of all of our randoms jobs.
 
-1. Look to see if there are any daemonsets running on the cluster. Look in all namespaces. Use --output=wide.
+1. Recreate the Job from the previous lab (with 10 completions). Give it a few moments to complete.
 
 <details><summary>show command</summary>
 <p>
 
 ```bash
-kubectl get daemonsets --all-namespaces --output=wide
+kubectl create -f job.yaml # use the correct YAMLfest here
+```
+
+</p>
+</details>
+<br/>
+
+2. Create a pod named `kubectl` using the `bitnami/kubectl` image. Give it a `command` property to `sleep infinity` like we did with the busybox pod in the networking lab to keep it from completing.
+
+<details><summary>show command</summary>
+<p>
+
+```bash
+kubectl run kubectl --image=bitnami/kubectl --command sleep infinity
+```
+
+</p>
+</details>
+<br/>
+
+3. Now `exec -it` into the kubectl pod and run the command (with `sh -c`) that we came up with in the previous lab for getting all the pods' logs. It should fail.
+
+<details><summary>show command</summary>
+<p>
+
+```bash
+kubectl exec -it kubectl -- \
+    sh -c 'for pod in $(kubectl get pods -l=job-name=randoms -o name); do kubectl logs $pod; done'
 ```
 
 </p>
@@ -18,76 +46,374 @@ kubectl get daemonsets --all-namespaces --output=wide
 Example output:
 
 ```
-NAMESPACE     NAME         DESIRED   CURRENT   READY   UP-TO-DATE   AVAILABLE   NODE SELECTOR            AGE
-kube-system   cilium       3         3         3       3            3           kubernetes.io/os=linux   24m
-kube-system   kube-proxy   3         3         3       3            3           kubernetes.io/os=linux   24m
+Error from server (Forbidden): pods is forbidden: User "system:serviceaccount:default:default" cannot list resource "pods" in API group "" in the namespace "default"
 ```
 
 <br/>
 
-2. Create a YAMLfest for a `DaemonSet` named `dsweb` using the `httpd` image. It's very similar to a deployment, but has a different `kind` and no `replicas` property.
+The kubectl pod doesn't have permission to get pods or their logs!
+
+4. Create a clusterrole named `pod-logger` that allows `get` and `list` verbs on resources `pods` and `pods/logs`. You can create a YAMLfest to do this and then `apply` it, **or** you can do it via the command line.
+
+<details><summary>show kubectl command</summary>
+<p>
+
+```bash
+kubectl create clusterrole pod-logger --verb=get,list --resource=pods,pods/log
+```
+
+</p>
+</details>
+<br/>
 
 <details><summary>show YAML</summary>
 <p>
 
-**ds.yaml**:
+**clusterrole.yaml**:
+```yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: pod-logger
+rules:
+- apiGroups: [""]
+  resources: ["pods", "pods/log"]
+  verbs: ["get", "list"]
+```
+
+```bash
+kubectl create -f clusterrole.yaml
+```
+
+</p>
+</details>
+<br/>
+
+5. Create a rolebinding to bind the ClusterRole to the `default` service account in the `default` namespace. Again you have YAML or command line options.
+
+<details><summary>show kubectl command</summary>
+<p>
+
+```bash
+kubectl create rolebinding pod-logger-binding \
+    --clusterrole=pod-logger --serviceaccount=default:default
+```
+
+</p>
+</details>
+<br/>
+
+<details><summary>show YAML</summary>
+<p>
+
+**rolebinding.yaml**:
+```yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: pod-logger-binding
+  namespace: default
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: pod-logger
+subjects:
+- kind: ServiceAccount
+  name: default
+  namespace: default
+```
+
+```bash
+kubectl create -f rolebinding.yaml
+```
+
+</p>
+</details>
+<br/>
+
+6. Try the `kubectl exec` command from step 3 again.
+
+<details><summary>show command</summary>
+<p>
+
+```bash
+kubectl exec -it kubectl -- \
+    sh -c 'for pod in $(kubectl get pods -l=job-name=randoms -o name); do kubectl logs $pod; done'
+```
+
+</p>
+</details>
+<br/>
+
+Example output:
+
+```bash
+79
+89
+50
+58
+63
+40
+17
+53
+96
+28
+```
+
+<br/>
+
+## 5.2 Network Policies
+
+7. **cURL** the frontend service and the backend service in each ns. You'll need to `get services` in both namespaces and then **cURL** their ClusterIP addresses.
+
+<details><summary>show command</summary>
+<p>
+
+```bash
+kubectl get service -n production
+kubectl get service -n development
+```
+
+</p>
+</details>
+<br/>
+
+Example output:
+
+```
+NAME       TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)   AGE
+backend    ClusterIP   10.105.142.21   <none>        80/TCP    5d18h
+frontend   ClusterIP   10.99.254.121   <none>        80/TCP    5d17h
+
+NAME       TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)   AGE
+backend    ClusterIP   10.102.60.108    <none>        80/TCP    5d18h
+frontend   ClusterIP   10.104.176.195   <none>        80/TCP    5d17h
+```
+
+<br/>
+
+8. Create a netpol that allows all traffic on port 8080 to pods with an `app` label with a value of `frontend`. But check that your pods actually have a `label` of `frontend` and not `lab3frontend` or `lab4frontend`. If they do, you may need to tweak things. Either modify the deployment manifest and recreate it, or modify the pod selector in the netpol.
+
+<details><summary>show command</summary>
+<p>
+
+**netpol_frontend.yaml**:
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-8080-to-frontend
+spec:
+  podSelector:
+    matchLabels:
+      app: frontend # ensure that this matches your pods' actual labels.
+  ingress:
+  - ports:
+    - port: 8080
+```
+
+</p>
+</details>
+<br/>
+
+9. Apply it in both namespaces.
+
+<details><summary>show command</summary>
+<p>
+
+```bash
+kubectl apply -f netpol_frontend.yaml -n production
+kubectl apply -f netpol_frontend.yaml -n development
+```
+
+</p>
+</details>
+<br/>
+
+10. Again, curl the frontend service in each namespace. It should still work because we're allowing all traffic into those pods. You should also be able to test via the browser if your ingress controller is still working.
+
+11. Create another netpol that allows traffic to pods with an `app` label with a value of `backend` from pods with an `app` label of `frontend` from a namespace with a `kubernetes.io/metadata.name` label of `production`. Once again, you should check what the actual labels are for your frontend and backend pods.
+
+<details><summary>show command</summary>
+<p>
+
+**netpol_backend_prod.yaml**:
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-8080-from-frontend
+  namespace: production           # explicit namespace
+spec:
+  podSelector:
+    matchLabels:
+      app: backend            # ensure this matches your pods' labels
+  ingress:
+  - from:
+      - podSelector:
+          matchLabels:
+            app: frontend         # ensure this matches your pods' labels
+      - namespaceSelector:
+          matchLabels:
+            kubernetes.io/metadata.name: production
+    ports:                        # unlike previous netpol, this is part of the "from" rule
+    - port: 8080
+```
+
+</p>
+</details>
+<br/>
+
+12. Apply it to the `production` namespace.
+
+<details><summary>show command</summary>
+<p>
+
+```bash
+kubectl apply -f netpol_backend_prod.yaml
+```
+
+</p>
+</details>
+<br/>
+
+13. Try **cURL**ing the backend service in production. It should now fail, but the frontend service should still be able to communicate with it.
+
+<details><summary>show command</summary>
+<p>
+
+```bash
+curl --max-time 10 \
+    $(kubectl get svc backend -n production --no-headers -o=custom-columns=ip:.spec.clusterIP)
+```
+
+</p>
+</details>
+<br/>
+
+14. Repeat the previous three steps for the `development` namespace.
+
+<details><summary>show YAML</summary>
+<p>
+
+**netpol_backend_dev.yaml**:
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-8080-from-frontend
+  namespace: development
+spec:
+  podSelector:
+    matchLabels:
+      app: backend
+  ingress:
+  - from:
+      - podSelector:
+          matchLabels:
+            app: frontend
+      - namespaceSelector:
+          matchLabels:
+            kubernetes.io/metadata.name: development
+    ports:
+    - port: 8080
+```
+
+</p>
+</details>
+<br/>
+
+<details><summary>Stretch goal - optional exercise</summary>
+<p>
+
+15. **Optional stretch goal** create the network policies in the test namespace as well.
+
+</p>
+</details>
+<br/>
+
+## 5.3 Pod Security
+
+16. Create an httpd pod with a `securityContext` that sets `runAsNonRoot` to `true`.
+
+<details><summary>show command</summary>
+<p>
+
+```bash
+kubectl run web \
+  --image=httpd \
+  --overrides='{ "spec": { "securityContext": {"runAsNonRoot": true} }  }'
+```
+
+</p>
+</details>
+<br/>
+
+17. Give it thirty seconds or so and then run `kubectl get pods`. You should see a `CreateContainerConfigError` and if you `describe` the pod, you'll see that the httpd image wants to run as root but you've said it can't.
+
+<details><summary>Stretch goal - optional exercise</summary>
+<p>
+
+18. **Optional stretch goal** try to find a non-privileged httpd image and use that instead.
+
+</p>
+</details>
+<br/>
+
+19. Add a `runAsNonRoot`: `true` to your frontend deployments in `development` and `production` (and `test` if you have that namespace and feel like doing it). You will need to recreate the deployments. They should be fine, because they're both listening on port 8080 and Kubernetes can tell that they don't need to run as root.
+
+<details><summary>show YAML</summary>
+<p>
+
 ```yaml
 apiVersion: apps/v1
-kind: DaemonSet
+kind: Deployment
 metadata:
-  name: dsweb
+  labels:
+    app: frontend
+  name: frontend
 spec:
+  replicas: 1
   selector:
     matchLabels:
-      app: dsweb
+      app: frontend
   template:
     metadata:
       labels:
-        app: dsweb
+        app: frontend
     spec:
+# ------ Add these lines ------
+      securityContext:
+        runAsNonRoot: true
+# -----------------------------
       containers:
-      - image: httpd
-        name: httpd
-```
-
-</p>
-</details>
-<br/>
-
-3. Create the daemonset.
-
-<details><summary>show command</summary>
-<p>
-
-```bash
-kubectl create -f ds.yaml
-```
-
-</p>
-</details>
-<br/>
-
-4. Expose it as a NodePort service and then browse to it. Intriguingly, the `kubectl expose` command returns an error for a daemonset, so we'll have to create the service via a YAMLfest.
-
-<details><summary>show YAML</summary>
-<p>
-
-**ds_service.yaml**:
-```yaml
-apiVersion: v1
-kind: Service
-metadata:
-  labels:
-    app: dsweb
-  name: dsweb
-spec:
-  ports:
-  - port: 80
-    protocol: TCP
-    targetPort: 80
-  selector:
-    app: dsweb # make sure this matches the labels of your daemonset's pods
-  type: NodePort
+      - image: public.ecr.aws/qa-wfl/qa-wfl/qakf/sfe:v1
+        name: sfe
+        env:
+        - name: COLOUR
+          valueFrom:
+            configMapKeyRef:
+              name: settings
+              key: colour        
+        - name: NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        volumeMounts:
+        - name: secret-volume
+          mountPath: /data
+      volumes:
+      - name: secret-volume
+        secret:
+          secretName: secrets
 ```
 
 </p>
@@ -97,440 +423,11 @@ spec:
 <details><summary>Stretch goal - optional exercise</summary>
 <p>
 
-5. **Optional stretch goal** if you `kubectl get` daemonsets in all namespaces you'll see that you only have two pods running whereas the system daemonsets both have 3. Can you work out why that is (and make it so yours works the same way). Hint: try describing the system ds pods, your ds pods and describing the nodes. This topic is not a part of this course.
+20. **Optional stretch goal** try the same thing with a backend deployment. The simple `runAsNonRoot` won't work in this case because Kubernetes can't tell from the container image that it doesn't need to run as root. Hint: try making it run as a specific user id.
 
 </p>
 </details>
 <br/>
 
-6. Delete the daemonset and the service.
 
-<details><summary>show command</summary>
-<p>
-
-```bash
-kubectl delete ds dsweb
-kubectl delete svc dsweb
-```
-
-</p>
-</details>
-<br/>
-
-## 5.2 Jobs
-
-7. Create a YAMLfest for a `job` that prints a random number.
-
-**job.yaml**:
-```yaml
-apiVersion: batch/v1
-kind: Job
-metadata:
-  name: randoms
-spec:
-  template:
-    spec:
-      restartPolicy: Never
-      containers:
-      - name: example
-        image: python
-        command:
-        - python3
-        - -c
-        - |
-          import random
-          print(random.randrange(1,100))
-```
-
-8. Create the `job`.
-
-<details><summary>show command</summary>
-<p>
-
-```bash
-kubectl create -f job.yaml
-```
-
-</p>
-</details>
-<br/>
-
-9. Watch the job until it has 1/1 completions. This might take a minute or so as Kubernetes will need to pull the image before it can run.
-
-<details><summary>show command</summary>
-<p>
-
-```bash
-kubectl get job --watch
-```
-
-</p>
-</details>
-<br/>
-
-10. Once it's completed, get the pod's logs.
-
-<details><summary>show command</summary>
-<p>
-
-```bash
-kubectl get pods
-kubectl logs randoms-t66kh # get the pod name from the output of the previous command
-```
-
-</p>
-</details>
-<br/>
-
-11. Delete the job. Note that deleting the job will also delete its completed pod.
-
-<details><summary>show command</summary>
-<p>
-
-```bash
-kubectl delete -f job.yaml
-```
-
-</p>
-</details>
-<br/>
-
-12. Change it to have 3 `completions`. The `completions` property is part of the job's spec, not the pod's.
-
-<details><summary>show YAML</summary>
-<p>
-
-```yaml
-apiVersion: batch/v1
-kind: Job
-metadata:
-  name: randoms
-spec:
-# ------ Add this line ------ 
-  completions: 3
-# ---------------------------
-  template:
-    spec:
-      restartPolicy: Never
-      containers:
-      - name: example
-        image: python
-        command:
-        - python3
-        - -c
-        - |
-          import random
-          print(random.randrange(1,100))
-```
-
-</p>
-</details>
-<br/>
-
-13. Create the job and then watch it until there are 3 completions.
-
-<details><summary>show command</summary>
-<p>
-
-```bash
-kubectl create -f job.yaml
-kubectl get jobs -w
-```
-
-</p>
-</details>
-<br/>
-
-14. Get all 3 pods' logs. You'll need to get the pods and then run `kubectl logs` once for each pod. Then delete the job again.
-
-<details><summary>show command</summary>
-<p>
-
-```bash
-kubectl get pods
-kubectl logs randoms-66zm7
-kubectl logs randoms-g8p4f
-kubectl logs randoms-pnlvv
-kubectl delete -f job.yaml
-```
-
-</p>
-</details>
-<br/>
-
-15. Change it to 10 `completions`, `parallelism` 3.
-
-<details><summary>show YAML</summary>
-<p>
-
-```yaml
-apiVersion: batch/v1
-kind: Job
-metadata:
-  name: randoms
-spec:
-  completions: 10    # <== Change the 3 to a 10
-# ------ Add this line ------ 
-  parallelism: 3
-# ---------------------------
-  template:
-    spec:
-      restartPolicy: Never
-      containers:
-      - name: example
-        image: python
-        command:
-        - python3
-        - -c
-        - |
-          import random
-          print(random.randrange(1,100))
-  completions: 10
-```
-
-</p>
-</details>
-<br/>
-
-16. Create the job and immediately start watching jobs. Observe that they're running 3 at a time. Once the watch shows 10 completions, move on to the next step.
-
-<details><summary>show command</summary>
-<p>
-
-```bash
-kubectl create -f job.yaml && kubectl get jobs --watch
-```
-
-</p>
-</details>
-<br/>
-
-17. Get all 10 pods' logs. You should know the drill by now... Wait a minute, surely there's an easier way than manually typing in all those pods' names? When a job creates a pod, it adds a label with its `job-name` to the pod, so we can generate a list of all the pods using the selector. And we're only interested in their names.
-
-```bash
-kubectl get pods --selector=job-name=randoms --output=name
-```
-
-So we can pass the result of that command into a bash `for` loop and get all 10 sets of logs.
-
-<details><summary>show command</summary>
-<p>
-
-```bash
-for pod in $(kubectl get pods -l=job-name=randoms -o name); do kubectl logs $pod; done
-```
-
-</p>
-</details>
-<br/>
-
-18. Delete the job again.
-
-## 5.3 CronJobs
-
-19. Turn the Job into a CronJob that runs once a minute, with no completions or parallelism. The `CronJob`'s spec will have a jobTemplate, which will have your original job's spec, which will have a template with the pod's spec.
-
-<details><summary>show YAML</summary>
-<p>
-
-**cronjob.yaml**:
-```yaml
-apiVersion: batch/v1
-kind: CronJob
-metadata:
-  name: randoms
-spec:
-  schedule: "* * * * *"
-  jobTemplate:
-    metadata:
-      name: randoms
-    spec:
-      template:
-        spec:
-          restartPolicy: Never
-          containers:
-          - name: example
-            image: python
-            command:
-            - python3
-            - -c
-            - |
-              import random
-              print(random.randrange(1,100))
-```
-
-</p>
-</details>
-<br/>
-
-20. Take a 10-minute break.
-
-21. Check logs. We won't be able to use our clever bash script from earlier because the CronJob creates the jobs, which create the pods, so each `job-name` label is unique. Let's start by `get`ting all pods.
-
-<details><summary>show command</summary>
-<p>
-
-```bash
-kubectl get pods
-```
-
-</p>
-</details>
-<br/>
-
-Example output:
-
-```
-NAME                       READY   STATUS      RESTARTS      AGE
-randoms-28557293-ldn7r     0/1     Completed   0             2m50s
-randoms-28557294-g577p     0/1     Completed   0             110s
-randoms-28557295-vxvc8     0/1     Completed   0             50s
-```
-
-<br/>
-
-What? There are only 3 pods! We left the cronjob running for 10 minutes, so surely there should be 10 pods, right?
-
-22. A CronJob only retains some of its completed pods. There are some properties we can set for how many successful pods and how many failed pods to retain. To find out what the default values are, you could either `get` as yaml or `describe` the CronJob and look for the word "Limit".
-
-<details><summary>show command</summary>
-<p>
-
-```bash
-kubectl get cronjob randoms -o yaml | grep Limit
-#or
-kubectl describe cronjob randoms | grep Limit
-```
-
-</p>
-</details>
-<br/>
-
-23. Delete the CronJob
-
-## 5.4 Helm
-
-24. Search artifact hub for httpd charts.
-
-<details><summary>show command</summary>
-<p>
-
-```bash
-helm search hub httpd
-```
-
-</p>
-</details>
-<br/>
-
-25. It might be nice to see some more details. Try getting the output in YAML format.
-
-<details><summary>show command</summary>
-<p>
-
-```bash
-helm search hub httpd -o yaml
-```
-
-</p>
-</details>
-<br/>
-
-26. Sadly, none of those are what we're after. Let's add the `https://charts.bitnami.com/bitnami` repo and call it `bitnami`.
-
-<details><summary>show command</summary>
-<p>
-
-```bash
-helm repo add bitnami https://charts.bitnami.com/bitnami
-```
-
-</p>
-</details>
-<br/>
-
-27. Use helm to install apache from the bitnami repo with a name of "myweb".
-
-<details><summary>show command</summary>
-<p>
-
-```bash
-helm install myweb bitnami/apache
-```
-
-</p>
-</details>
-<br/>
-
-28. Get the IP address / nodeport of the newly created service and browse to it.
-
-<details><summary>show command</summary>
-<p>
-
-```bash
-kubectl get services
-```
-
-</p>
-</details>
-<br/>
-
-Example output:
-
-```
-NAME           TYPE           CLUSTER-IP       EXTERNAL-IP   PORT(S)                      AGE
-kubernetes     ClusterIP      10.96.0.1        <none>        443/TCP                      78d
-myweb-apache   LoadBalancer   10.99.216.246    <pending>     80:30549/TCP,443:30471/TCP   3m2s
-```
-
-<br/>
-
-Note that the service is named `myweb-apache`, which is a combination of the name of the release you installed and the name of the chart. Also note that it has created a LoadBalancer service, which we don't need in this cluster.
-
-29. `Upgrade` the release, changing the `service.type` to `NodePort`.
-
-<details><summary>show command</summary>
-<p>
-
-```bash
-helm upgrade myweb bitnami/apache \
-    --set service.type=NodePort
-```
-
-</p>
-</details>
-<br/>
-
-30. Get the service again. Note that the service hasn't been deleted and recreated, just modified in-place. Anything that was pointing at `myweb` before is still pointing at the same thing.
-
-<details><summary>show command</summary>
-<p>
-
-```bash
-kubectl get service
-```
-
-</p>
-</details>
-<br/>
-
-Example output:
-
-```
-NAME           TYPE           CLUSTER-IP       EXTERNAL-IP   PORT(S)                      AGE
-kubernetes     ClusterIP      10.96.0.1        <none>        443/TCP                      78d
-myweb-apache   LoadBalancer   10.99.216.246    <none>        80:30549/TCP,443:30471/TCP   3m2s
-```
-
-<br/>
-
-<details><summary>Stretch goal - optional exercise</summary>
-<p>
-
-31. **Optional stretch goal** create an ingress rule for `myweb` at web.yourip.nip.io. If you do this, you can change the release's service type to a ClusterIP instead of a NodePort.
-
-</p>
-</details>
-<br/>
-
-32. That's it, you're done! Let your instructor know that you've finished the lab.
+21. That's it, you're done! Let your instructor know that you've finished the lab.

@@ -1,5 +1,7 @@
 # Lab 6b -- Policy as Code with Kyverno
 
+
+
 ## Objectives
 
 In this lab you will:

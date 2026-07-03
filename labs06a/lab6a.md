@@ -1,433 +1,236 @@
-# Lab 6a - Security
-## 6a.1 RBAC
+# Lab 6a - Policy and Governance
 
-We're going to create a pod that prints all of the logs of all of our randoms jobs.
+## 6a.1 Setup the Namespaces
 
-1. Recreate the Job from the previous lab (with 10 completions). Give it a few moments to complete.
-
-<details><summary>show command</summary>
-<p>
+1. [1]Create and label the two namespaces we will be using for this lab:
 
 ```bash
-kubectl create -f job.yaml # use the correct YAMLfest here
+kubectl create ns webserver
+kubectl create ns ingress
+kubectl label ns webserver app=webserver
+kubectl label ns ingress app=nginx-ingress
 ```
 
-</p>
-</details>
-<br/>
-
-2. Create a pod named `kubectl` using the `bitnami/kubectl` image. Give it a `command` property to `sleep infinity` like we did with the busybox pod in the networking lab to keep it from completing.
-
-<details><summary>show command</summary>
-<p>
+2. [2]Apply a Pod Security Standard of `Restricted` to the webserver namespace:
 
 ```bash
-kubectl run kubectl --image=bitnami/kubectl --command sleep infinity
+kubectl label ns webserver pod-security.kubernetes.io/enforce=restricted
 ```
 
-</p>
-</details>
-<br/>
-
-3. Now `exec -it` into the kubectl pod and run the command (with `sh -c`) that we came up with in the previous lab for getting all the pods' logs. It should fail.
-
-<details><summary>show command</summary>
-<p>
+3. [3]Generate a manifest for a `ResourceQuota` object and apply it to the webserver namespace:
 
 ```bash
-kubectl exec -it kubectl -- \
-    sh -c 'for pod in $(kubectl get pods -l=job-name=randoms -o name); do kubectl logs $pod; done'
+kubectl create quota webserver-quota --hard=pods=5,cpu=2,memory=2G --dry-run=client -o yaml > ws-quota.yml
+kubectl apply -n webserver -f ws-quota.yml
 ```
 
-</p>
-</details>
-<br/>
+4. [4]Review the provided `NetworkPolicy` resource manifest for the webserver namespace (`solutions/06_01_netpol_webserver.yaml`). Fill in the `from` and `ports` sections to allow traffic from the ingress namespace on port 8080. See the solution below if needed
 
-Example output:
+<details>
+<summary>solution</summary>
 
-```
-Error from server (Forbidden): pods is forbidden: User "system:serviceaccount:default:default" cannot list resource "pods" in API group "" in the namespace "default"
-```
-
-<br/>
-
-The kubectl pod doesn't have permission to get pods or their logs!
-
-4. Create a clusterrole named `pod-logger` that allows `get` and `list` verbs on resources `pods` and `pods/logs`. You can create a YAMLfest to do this and then `apply` it, **or** you can do it via the command line.
-
-<details><summary>show kubectl command</summary>
-<p>
-
-```bash
-kubectl create clusterrole pod-logger --verb=get,list --resource=pods,pods/log
-```
-
-</p>
-</details>
-<br/>
-
-<details><summary>show YAML</summary>
-<p>
-
-**clusterrole.yaml**:
 ```yaml
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
-metadata:
-  name: pod-logger
-rules:
-- apiGroups: [""]
-  resources: ["pods", "pods/log"]
-  verbs: ["get", "list"]
-```
-
-```bash
-kubectl create -f clusterrole.yaml
-```
-
-</p>
-</details>
-<br/>
-
-5. Create a rolebinding to bind the ClusterRole to the `default` service account in the `default` namespace. Again you have YAML or command line options.
-
-<details><summary>show kubectl command</summary>
-<p>
-
-```bash
-kubectl create rolebinding pod-logger-binding \
-    --clusterrole=pod-logger --serviceaccount=default:default
-```
-
-</p>
-</details>
-<br/>
-
-<details><summary>show YAML</summary>
-<p>
-
-**rolebinding.yaml**:
-```yaml
-apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
-metadata:
-  name: pod-logger-binding
-  namespace: default
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: pod-logger
-subjects:
-- kind: ServiceAccount
-  name: default
-  namespace: default
-```
-
-```bash
-kubectl create -f rolebinding.yaml
-```
-
-</p>
-</details>
-<br/>
-
-6. Try the `kubectl exec` command from step 3 again.
-
-<details><summary>show command</summary>
-<p>
-
-```bash
-kubectl exec -it kubectl -- \
-    sh -c 'for pod in $(kubectl get pods -l=job-name=randoms -o name); do kubectl logs $pod; done'
-```
-
-</p>
-</details>
-<br/>
-
-Example output:
-
-```bash
-79
-89
-50
-58
-63
-40
-17
-53
-96
-28
-```
-
-<br/>
-
-## 6a.2 Network Policies
-
-7. **cURL** the frontend service and the backend service in each ns. You'll need to `get services` in both namespaces and then **cURL** their ClusterIP addresses.
-
-<details><summary>show command</summary>
-<p>
-
-```bash
-kubectl get service -n production
-kubectl get service -n development
-```
-
-</p>
-</details>
-<br/>
-
-Example output:
-
-```
-NAME       TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)   AGE
-backend    ClusterIP   10.105.142.21   <none>        80/TCP    5d18h
-frontend   ClusterIP   10.99.254.121   <none>        80/TCP    5d17h
-
-NAME       TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)   AGE
-backend    ClusterIP   10.102.60.108    <none>        80/TCP    5d18h
-frontend   ClusterIP   10.104.176.195   <none>        80/TCP    5d17h
-```
-
-<br/>
-
-8. Create a netpol that allows all traffic on port 8080 to pods with an `app` label with a value of `frontend`. But check that your pods actually have a `label` of `frontend` and not `lab3frontend` or `lab4frontend`. If they do, you may need to tweak things. Either modify the deployment manifest and recreate it, or modify the pod selector in the netpol.
-
-<details><summary>show command</summary>
-<p>
-
-**netpol_frontend.yaml**:
-```yaml
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: allow-8080-to-frontend
-spec:
-  podSelector:
-    matchLabels:
-      app: frontend # ensure that this matches your pods' actual labels.
-  ingress:
-  - ports:
-    - port: 8080
-```
-
-</p>
-</details>
-<br/>
-
-9. Apply it in both namespaces.
-
-<details><summary>show command</summary>
-<p>
-
-```bash
-kubectl apply -f netpol_frontend.yaml -n production
-kubectl apply -f netpol_frontend.yaml -n development
-```
-
-</p>
-</details>
-<br/>
-
-10. Again, curl the frontend service in each namespace. It should still work because we're allowing all traffic into those pods. You should also be able to test via the browser if your ingress controller is still working.
-
-11. Create another netpol that allows traffic to pods with an `app` label with a value of `backend` from pods with an `app` label of `frontend` from a namespace with a `kubernetes.io/metadata.name` label of `production`. Once again, you should check what the actual labels are for your frontend and backend pods.
-
-<details><summary>show command</summary>
-<p>
-
-**netpol_backend_prod.yaml**:
-```yaml
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: allow-8080-from-frontend
-  namespace: production           # explicit namespace
-spec:
-  podSelector:
-    matchLabels:
-      app: backend            # ensure this matches your pods' labels
-  ingress:
+# rest of yaml omitted
+ingress:
   - from:
-      - podSelector:
-          matchLabels:
-            app: frontend         # ensure this matches your pods' labels
-      - namespaceSelector:
-          matchLabels:
-            kubernetes.io/metadata.name: production
-    ports:                        # unlike previous netpol, this is part of the "from" rule
-    - port: 8080
-```
-
-</p>
-</details>
-<br/>
-
-12. Apply it to the `production` namespace.
-
-<details><summary>show command</summary>
-<p>
-
-```bash
-kubectl apply -f netpol_backend_prod.yaml
-```
-
-</p>
-</details>
-<br/>
-
-13. Try **cURL**ing the backend service in production. It should now fail, but the frontend service should still be able to communicate with it.
-
-<details><summary>show command</summary>
-<p>
-
-```bash
-curl --max-time 10 \
-    $(kubectl get svc backend -n production --no-headers -o=custom-columns=ip:.spec.clusterIP)
-```
-
-</p>
-</details>
-<br/>
-
-14. Repeat the previous three steps for the `development` namespace.
-
-<details><summary>show YAML</summary>
-<p>
-
-**netpol_backend_dev.yaml**:
-```yaml
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: allow-8080-from-frontend
-  namespace: development
-spec:
-  podSelector:
-    matchLabels:
-      app: backend
-  ingress:
-  - from:
-      - podSelector:
-          matchLabels:
-            app: frontend
-      - namespaceSelector:
-          matchLabels:
-            kubernetes.io/metadata.name: development
+    - namespaceSelector:
+        matchLabels:
+          app: nginx-ingress 
     ports:
-    - port: 8080
+    - protocol: TCP
+      port: 8080
+# rest of yaml omitted
 ```
 
-</p>
 </details>
-<br/>
 
-<details><summary>Stretch goal - optional exercise</summary>
-<p>
-
-15. **Optional stretch goal** create the network policies in the test namespace as well.
-
-</p>
-</details>
-<br/>
-
-## 6a.3 Pod Security
-
-16. Create an httpd pod with a `securityContext` that sets `runAsNonRoot` to `true`.
-
-<details><summary>show command</summary>
-<p>
+5. [5]Apply the `NetworkPolicy` resources for the two namespaces:
 
 ```bash
-kubectl run web \
-  --image=httpd \
-  --overrides='{ "spec": { "securityContext": {"runAsNonRoot": true} }  }'
+kubectl -n ingress apply -f solutions/06_01_netpol_ingress.yml
+kubectl -n webserver apply -f solutions/06_01_netpol_webserver.yml
 ```
 
-</p>
-</details>
-<br/>
+6. [6]Use helm to deploy the Nginx ingress controller into the ingress namespace:
 
-17. Give it thirty seconds or so and then run `kubectl get pods`. You should see a `CreateContainerConfigError` and if you `describe` the pod, you'll see that the httpd image wants to run as root but you've said it can't.
+```bash
+helm -n ingress install nginx-ingress oci://ghcr.io/nginx/charts/nginx-ingress --version 2.5.2 --set controller.kind=DaemonSet
+```
 
-<details><summary>Stretch goal - optional exercise</summary>
-<p>
+## 6a.2 Deploy the Webserver
 
-18. **Optional stretch goal** try to find a non-privileged httpd image and use that instead.
+7. [7]Generate a deployment manifest using `kubectl create`:
 
-</p>
-</details>
-<br/>
+```bash
+kubectl create deploy webserver --replicas=10 --image=nginx:alpine --port=80 --dry-run=client -o yaml > deploy.yml
+```
 
-19. Add a `runAsNonRoot`: `true` to your frontend deployments in `development` and `production` (and `test` if you have that namespace and feel like doing it). You will need to recreate the deployments. They should be fine, because they're both listening on port 8080 and Kubernetes can tell that they don't need to run as root.
+8. [8]Apply the manifest:
 
-<details><summary>show YAML</summary>
-<p>
+```bash
+kubectl apply -n webserver -f deploy.yml
+```
+You will notice that, although the deployment is created, we get a warning about a policy violation. Confirm that there are currently no pods:
+
+```bash
+kubectl -n webserver get pods
+```
+
+9. [9]We don't need to look too hard to see what the problem could be here, thanks to the warning we got when creating the deployment. Our restricted pod security standard requires certain privilege limitations which are not currently present on our pods. 
+
+10. [10]Add an appropriate securityContext to the container configuration in your deployment manifest - see the solution below if needed:
+
+<details>
+<summary>solution</summary>
 
 ```yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  labels:
-    app: frontend
-  name: frontend
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: frontend
-  template:
-    metadata:
-      labels:
-        app: frontend
-    spec:
-# ------ Add these lines ------
-      securityContext:
-        runAsNonRoot: true
-# -----------------------------
-      containers:
-      - image: public.ecr.aws/qa-wfl/qa-wfl/qakf/sfe:v1
-        name: sfe
-        env:
-        - name: COLOUR
-          valueFrom:
-            configMapKeyRef:
-              name: settings
-              key: colour        
-        - name: NAMESPACE
-          valueFrom:
-            fieldRef:
-              fieldPath: metadata.namespace
-        - name: NODE_NAME
-          valueFrom:
-            fieldRef:
-              fieldPath: spec.nodeName
-        - name: POD_NAME
-          valueFrom:
-            fieldRef:
-              fieldPath: metadata.name
-        volumeMounts:
-        - name: secret-volume
-          mountPath: /data
-      volumes:
-      - name: secret-volume
-        secret:
-          secretName: secrets
+# rest of yaml omitted
+containers:
+- image: nginx:alpine
+  securityContext:
+    runAsNonRoot: true
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop: ["ALL"]
+    seccompProfile:
+      type: RuntimeDefault
+# rest of yaml omitted
 ```
 
-</p>
 </details>
-<br/>
 
-<details><summary>Stretch goal - optional exercise</summary>
-<p>
+10. [10]Time to see if our deployment is working now. Reapply the manifest, then get the pods in the webserver namespace:
 
-20. **Optional stretch goal** try the same thing with a backend deployment. The simple `runAsNonRoot` won't work in this case because Kubernetes can't tell from the container image that it doesn't need to run as root. Hint: try making it run as a specific user id.
+```bash
+kubectl -n webserver apply -f deploy.yml
+kubectl -n webserver get pods
+```
+There are still no pods found. Time to begin some deeper troubleshooting. 
 
-</p>
+11. [11]Begin by describing the deployment:
+
+```bash
+kubectl -n webserver describe deploy webserver
+```
+Review the conditions and events information:
+
+```
+Conditions:
+  Type             Status  Reason
+  ----             ------  ------
+  Progressing      True    NewReplicaSetCreated
+  Available        False   MinimumReplicasUnavailable
+  ReplicaFailure   True    FailedCreate
+OldReplicaSets:    webserver-6bc6b589d7 (0/8 replicas created)
+NewReplicaSet:     webserver-84859c8bf8 (0/5 replicas created)
+Events:
+  Type    Reason             Age   From                   Message
+  ----    ------             ----  ----                   -------
+  Normal  ScalingReplicaSet  4m3s  deployment-controller  Scaled up replica set webserver-6bc6b589d7 from 0 to 10
+  Normal  ScalingReplicaSet  70s   deployment-controller  Scaled up replica set webserver-84859c8bf8 from 0 to 3
+  Normal  ScalingReplicaSet  70s   deployment-controller  Scaled down replica set webserver-6bc6b589d7 from 10 to 8
+  Normal  ScalingReplicaSet  70s   deployment-controller  Scaled up replica set webserver-84859c8bf8 from 3 to 5
+```
+
+This tells us several key things. Firstly, that the deployment was successfully updated and attempted to create a new ReplicaSet and, secondly, that the ReplicaSet failed creation. To see why, describe the ReplicaSet:
+
+```bash
+kubectl -n webserver describe rs webserver-xxxxxxxxxx # replace with the name of your replicaset
+```
+
+12. [12]Reviewing the events for the ReplicaSet tells us what the issue is - that our `ResourceQuota` applies CPU and memory limits to the webserver namespace, meaning we have to provide this information to allow validation against the policy. Edit the `resources` stanza of your manifest to set requests and limits of 100m cpu/100Mi memory. See the solution below if needed
+
+<details>
+<summary>solution</summary>
+
+```yaml
+# rest of yaml omitted
+resources:
+  requests:
+    cpu: 100m
+    memory: 100Mi
+  limits:
+    cpu: 100m
+    memory: 100Mi
+# rest of yaml omitted
+```
+
 </details>
-<br/>
 
+13. [13]Reapply the manifest and perform a `get pods` again:
 
-21. That's it, you're done! Let your instructor know that you've finished the lab.
+```bash
+kubectl -n webserver apply -f deploy.yml
+```
+Observe that we now have some pods, and two new issues:
+  * The pods we have are all failing to create containers
+  * We only have 5 pods, not the 10 replicas defined in the deployment spec
+
+We will deal with the container creation issue first, and then the replicas.
+
+14. [14]To investigate the container creation error, describe one of the failed pods:
+
+```bash
+kubectl -n webserver describe pod webserver-xxxxxxxxxx-xxxxx
+```
+This is the long arm of our pod security standard again. The PSS requires that we prevent all containers from running as root, but the standard Nginx image requires running as root in order to do things like bind port 80. 
+
+15. [15]Edit the image and containerPort used by the deployment like so:
+
+```yaml
+# rest of yaml omitted
+containers:
+- image: nginxinc/nginx-unprivileged
+  ports:
+  - containerPort: 8080
+# rest of yaml omitted
+```
+
+16. [16]Apply the manifest again: `kubectl -n webserver apply -f deploy.yml`. Confirm that there are now 5 running pods.
+
+17. [17]The other issue that we identified was that we had only 5 pods, not the 10 specified in `deploy.yml`. This is, of course, due to the pod count limit in the ResourceQuota. If we had good reason to need all 10 replicas, we could adjust the ResourceQuota accordingly. Seeing as we don't need 10 replicas, we will edit `deploy.yml` and change the `replicas:` value to 5, to respect the quota. Make this change and apply the manifest once more.
+
+18. [18]Time to expose the deployment. Remember that the service should be of type `ClusterIP`:
+
+```bash
+kubectl -n webserver expose deploy webserver --type=ClusterIP --port=8080
+```
+
+## 6.3 Configure Ingress
+19. [19]We will now set up the ingress routing to the webserver deployment. Generate a starter ingress configuration:
+
+```bash
+kubectl -n ingress create ingress new-ingress --class=nginx --rule="/*=webserver:8080" --dry-run=client -o yaml > ingress.yml
+```
+
+20. [20]Apply the ingress configuration:
+
+```bash
+kubectl apply -f ingress.yml
+```
+
+21. [21]Retrieve the high-numbered port associated with the ingress service, and in a browser navigate to `http://<cluster-node-ip>:<service-port>`. Do you see the webserver?
+
+22. [22]Review the logs for the webserver pods to confirm that the issue is not with the webserver itself; the requests simply aren't getting through. Why might this be?
+
+23. [23]The answer lies in the way that ingress works - the services used as backends for the ingress are assumed to exist in the same namespace as the ingress itself. The solution to this problem is the `ExternalName` service type, which we can use to create a `webserver` service in the ingress namespace which resolves to the cluster DNS of the target service in the webserver namespace
+
+24. [24]Review and apply the provided `solutions/06_03_ename_svc.yml` manifest to create the appropriate service into the ingress namespace:
+
+```bash
+kubectl apply -f solutions/06_03_ename-svc.yml
+```
+Reload the browser tab. Is the webserver reachable now?
+
+25. [25]We have one more configuration issue to solve. The ExternalName service that we have just created creates a DNS record which is used to resolve the correct service in the webserver namespace. However, in order to do this, we need to be able to make requests to the `kube-dns` component to lookup the fully qualified service name. As this component runs in the `kube-system` namespace, egress traffic to it is currently blocked by our network policy.
+
+26. [26]Edit the `solutions/06_01_netpol_ingress.yml` manifest and add the following egress rule _in addition to_ the existing one:
+
+```yaml
+- podSelector:
+    matchLabels:
+      k8s-app: kube-dns
+```
+
+27. [27]Reload the browser tab again - you should now be able to see the default "Welcome to NGINX" landing page
+

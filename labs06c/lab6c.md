@@ -252,3 +252,94 @@ Discuss the following with your instructor.
 -   Which policies should begin in Audit mode?
 -   How does Kyverno complement RBAC, Pod Security Admission and Network
     Policies?
+
+
+
+
+29. Create a new policy which requires all pods have a non-empty label "app.kubernetes.io/name"
+
+<details>
+<summary>Show policy YAML</summary>
+<p>
+    
+```yaml
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: pod-require-name-label
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+  - name: check-for-name-label
+    match:
+      any:
+      - resources:
+          kinds:
+          - Pod
+    exclude:
+      any:
+      - resources:
+          namespaces:
+          - kube-system
+          - kyverno
+    validate:
+      message: "label 'app.kubernetes.io/name' is required"
+      pattern:
+        metadata:
+          labels:
+            app.kubernetes.io/name: "?*"
+```
+
+</p>
+</details>
+
+<details>
+<summary>Show command</summary>
+<p>
+
+```bash
+kubectl apply -f pod-name-policy.yaml
+```
+
+</p>
+</details>
+
+30. Attempt to create a pod which violates this policy:
+
+<details>
+<summary>Show command</summary>
+<p>
+    
+```bash
+kubectl run nginx --image=nginx:alpine
+```
+
+</p>
+</details>
+
+31. Observe that the pod is rejected as it violates the policy. Create the pod with the required label:
+
+<details>
+<summary>Show command</summary>
+<p>
+
+```bash
+kubectl run nginx --image=nginx:alpine -l app.kubernetes.io/name=nginx
+```
+
+</p>
+</details>
+
+<details>
+<summary>Stretch goal</summary>
+<p>
+    
+32. Based on the example we have just seen, attempt to create a second policy which requires that all Pods have a security context with the following attributes:
+    - `runAsNonRoot`: `true`
+    - `runAsUser`: `any value greater than 1000`  
+
+and are based on an image from the `public.ecr.aws/qa-wfl/qa-wfl/qakf` registry. Hint: you can use the Kyverno playground at https://playground.kyverno.io/ to dynamically experiment with policy configurations.
+
+</p>
+</details>
