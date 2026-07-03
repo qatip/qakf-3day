@@ -150,7 +150,7 @@ I am the backend service. I'm version 1!
 > **Note** 
 > `asmttpd` is a lightweight web server used by the QA training images. It serves the web content stored in `/web_root`, with `8080` supplied as the TCP port on which the application should listen.
 >
-> Close the worker ssh session window and return to your controller ssh session
+> Close the *worker* ssh session window and return to your *controller* ssh session.
 >
 > **Considerations**
 >
