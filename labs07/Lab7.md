@@ -35,7 +35,7 @@ Kubernetes resources.
 
 ------------------------------------------------------------------------
 
-# 8.1 Install Kyverno
+# 7.1 Install Kyverno
 
 Add the Helm repository:
 
@@ -63,7 +63,7 @@ controllers running.
 
 ------------------------------------------------------------------------
 
-# 8.2 Explore the Installation
+# 7.2 Explore the Installation
 
 View the resources Kyverno has added:
 
@@ -81,7 +81,7 @@ Initially there should be no policies.
 
 ------------------------------------------------------------------------
 
-# 8.3 Create Your First Policy
+# 7.3 Create Your First Policy
 
 Create a file named **no-latest.yaml** containing:
 
@@ -127,7 +127,7 @@ kubectl get clusterpolicy
 
 ------------------------------------------------------------------------
 
-# 8.4 Test the Policy
+# 7.4 Test the Policy
 
 Attempt to deploy an image using the `latest` tag:
 
@@ -152,7 +152,7 @@ kubectl get pods
 
 ------------------------------------------------------------------------
 
-# 8.5 Discussion
+# 7.5 Discussion
 
 Questions:
 
@@ -185,7 +185,7 @@ with organisational policy.
 
 ------------------------------------------------------------------------
 
-# 8.6 Clean Up
+# 7.6 Clean Up
 
 Delete the test workload:
 

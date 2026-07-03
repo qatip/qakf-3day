@@ -14,7 +14,7 @@ In this lab you will explore the four common Kyverno policy types:
 
 ------------------------------------------------------------------------
 
-# 9.1 Validate Policies
+# 8.1 Validate Policies
 
 ## Objective
 
@@ -62,7 +62,7 @@ Observe that the deployment is rejected.
 Now deploy a versioned image:
 
 ``` bash
-kubectl create deployment good --image=nginx:1.29.1
+kubectl create deployment good --image=nginx:1.28.1
 ```
 
 Verify:
@@ -80,7 +80,7 @@ kubectl delete clusterpolicy validate-images
 
 ------------------------------------------------------------------------
 
-# 9.2 Mutate Policies
+# 8.2 Mutate Policies
 
 ## Objective
 
@@ -117,7 +117,7 @@ kubectl apply -f mutate.yaml
 Create a deployment:
 
 ``` bash
-kubectl create deployment web --image=nginx:1.29.1
+kubectl create deployment web --image=nginx:1.28.1
 ```
 
 Inspect it:
@@ -137,7 +137,7 @@ kubectl delete clusterpolicy add-managed-label
 
 ------------------------------------------------------------------------
 
-# 9.3 Generate Policies
+# 8.3 Generate Policies
 
 ## Objective
 
@@ -197,7 +197,7 @@ kubectl delete clusterpolicy namespace-default-config
 
 ------------------------------------------------------------------------
 
-# 9.4 Cleanup Policies
+# 8.4 Cleanup Policies
 
 ## Objective
 
