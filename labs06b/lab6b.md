@@ -15,8 +15,6 @@ In this lab you will:
 
  This lab has been developed and tested using the following software versions:
 
- - Kubernetes v1.31.x
- - Helm 3.x
  - Kyverno Helm Chart **3.5.2**
  - Kyverno Application **1.18.1**
 
