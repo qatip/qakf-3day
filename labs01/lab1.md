@@ -73,7 +73,7 @@ simple   1/1     Running   0          3m59s   10.42.0.10 ...
 <p>
 
 ```bash
-curl {pod ip}.10:8080
+curl {pod ip}:8080
 ```
 
 </p>
