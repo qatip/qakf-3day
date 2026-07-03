@@ -102,6 +102,9 @@ Create the daemonset.
 ```bash
 kubectl create -f ds_service.yaml
 ```
+</p>
+</details>
+<br/>
 
 
 <details><summary>Stretch goal - optional exercise</summary>
