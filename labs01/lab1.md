@@ -215,7 +215,7 @@ spec:
         image: public.ecr.aws/qa-wfl/qa-wfl/qakf/sbe:v1
 ```
 
-Note the apiVersion is apps/v1. ReplicaSets aren’t part of the “core” API. We’re saying that we always want to have 3 pods running and the podspec from before is now nested in the ReplicaSet’s template stanza. 
+>Note the apiVersion is apps/v1. ReplicaSets aren’t part of the “core” API. We’re saying that we always want to have 3 pods running and the podspec from before is now nested in the ReplicaSet’s template stanza. 
 
 7. Let’s create the ReplicaSet. Tell Kubernetes to `apply` this manifest to the cluster. 
 
