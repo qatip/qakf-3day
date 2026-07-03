@@ -29,7 +29,7 @@ iv. Your ***permissions*** are checked using RBAC.
 v. Any configured ***Admission Controllers*** (such as Kyverno) evaluate the request.  
 vi. The Pod definition is stored in etcd, the Kubernetes cluster ***database***.  
 vii. The Scheduler selects the most appropriate ***worker node***.  
-viii. The chosen worker node's kubelet notices a ***new Pod*** has been assigned.  
+viii. The chosen worker node's ***kubelet*** notices a new Pod has been assigned.  
 ix. The kubelet instructs the ***container runtime*** (containerd) to ensure the required image is available.  
 x. If the ***image*** is not already cached locally, it is ***downloaded*** from the container registry.  
 xi. The container runtime ***creates the container*** and starts the application.  
