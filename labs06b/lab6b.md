@@ -16,7 +16,6 @@ In this lab you will:
  This lab has been developed and tested using the following software versions:
 
  - Kubernetes v1.31.x
- - Kind
  - Helm 3.x
  - Kyverno Helm Chart **3.5.2**
  - Kyverno Application **1.18.1**
@@ -79,6 +78,7 @@ Check for existing policies.
 
 ``` bash
 kubectl get clusterpolicy
+kubectl describe clusterpolicy
 ```
 
 No policies should currently exist.
@@ -185,26 +185,8 @@ Delete the test Deployment.
 
 ``` bash
 kubectl delete deployment web --ignore-not-found
-```
-
-Delete the policy.
-
-``` bash
 kubectl delete clusterpolicy validate-images
-```
-
-Remove Kyverno.
-
-``` bash
-helm uninstall kyverno -n kyverno
-kubectl delete namespace kyverno --ignore-not-found
-```
-
-Verify the cluster has been restored.
-
-``` bash
-kubectl get ns
-kubectl api-resources | grep kyverno
+rm validate.yaml
 ```
 
 ------------------------------------------------------------------------
