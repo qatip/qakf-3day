@@ -242,7 +242,7 @@ Note the apiVersion is apps/v1. ReplicaSets aren’t part of the “core” API.
 <p>
 
 ```bash
-kubectl create -f rs.yaml 
+kubectl apply -f rs.yaml 
 ```
 
 </p>
