@@ -20,7 +20,7 @@ kubectl run simple --image=public.ecr.aws/qa-wfl/qa-wfl/qakf/sbe:v1
 </p>
 </details>
 
-Lots happens under the hood, things we will discuss more as the coures progresses.. 
+Lots happens under the hood, things we will discuss more as the course progresses.. 
  
 i. kubectl converts your command into a Kubernetes API request.  
 ii. The request is sent securely to the API Server.  
@@ -78,6 +78,8 @@ curl 10.42.0.10:8080
 
 </p>
 </details>
+
+test test test
 
 <br/>Example output:
 ```
