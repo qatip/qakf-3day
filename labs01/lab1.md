@@ -2,7 +2,7 @@
 
 ## 1.1 - Pods, ReplicaSets and Deployments
 
-The intent of this walkthrough is to familiarise you with the standard method of getting apps into Kubernetes: `Deployments`. However, it is important to understand the relationship between `Pods`, `ReplicaSets` and `Deployments`.
+The intent of this lab is to familiarise you with the standard method of getting apps into Kubernetes: `Deployments`. However, as we progress, it is important to understand the relationship between `Pods`, `ReplicaSets` and `Deployments`.
 
 The container images we'll use for this lab are ones we'll keep using throughout the course. There are several different versions of our simple back-end image in AWS's public container registry.
 
