@@ -472,22 +472,15 @@ You haven’t created an "Expose" controller, you’ve created a Service, which 
 
 22. Let’s see if it has worked, by `get`ting the new service: 
 
-<details><summary>show command</summary>
-<p>
-
-```bash
+```
 kubectl get service hello
 ```
-
-</p>
-</details>
-<br/>
 
 Example output:
 
 ```
-NAME    TYPE       CLUSTER-IP     EXTERNAL-IP   PORT(S)          AGE
-hello   NodePort   10.43.123.74   <none>        8080:31907/TCP   31s
+NAME    TYPE       CLUSTER-IP      EXTERNAL-IP   PORT(S)          AGE
+hello   NodePort   10.105.162.15   <none>        8080:31115/TCP   32m
 ```
 
 <br/>
@@ -496,7 +489,7 @@ hello   NodePort   10.43.123.74   <none>        8080:31907/TCP   31s
 
 
 ```bash
-curl localhost:31907
+curl localhost:31115
 ```
 
 Example output:
@@ -514,7 +507,7 @@ hostname -i
 
 ![public-ip](../diagrams/public-ip.png)
 
-![test](../diagrams/test.png)
+![browse-to-dep](../diagrams/browse-to-dep.png)
 
 25. Finally, delete the service and the deployment:
 
