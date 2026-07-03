@@ -85,6 +85,104 @@ Notice that containers use internal IP addresses, so you cannot browse to this c
 ```
 I am the backend service. I'm version 1!
 ```
+---
+
+## Behind the Scenes (Optional)
+
+You were instructed to use TCP port **8080**, but how did we know that the application was listening on this port?
+
+Let's investigate.
+
+### 1. Identify the worker node
+
+Determine which worker node is hosting the Pod.
+
+```bash
+kubectl get pod simple -o wide
+```
+
+Example output:
+
+```text
+NAME     READY   STATUS    IP          NODE
+simple   1/1     Running   10.42.0.6   k8s-worker-1
+```
+
+Notice the **NODE** column. This tells you which Kubernetes worker is running the Pod.
+
+---
+
+### 2. Connect to the worker node
+
+Using the AWS Management Console, identify the corresponding EC2 instance and establish an SSH session to that worker node.
+
+> **Note**
+>
+> The container image is stored on the worker node that is running the Pod, not on the Kubernetes control plane.
+
+---
+
+### 3. Locate the container image
+
+List the images managed by the container runtime.
+
+```bash
+sudo crictl images
+```
+
+Locate the training image.
+
+```text
+IMAGE
+public.ecr.aws/qa-wfl/qa-wfl/qakf/sbe:v1
+```
+
+Make a note of the associated **IMAGE ID**.
+
+---
+
+### 4. Inspect the image
+
+Inspect the image metadata.
+
+```bash
+sudo crictl inspecti <image-id>
+```
+
+Locate the following section:
+
+```text
+"Entrypoint": [
+    "/asmttpd"
+],
+"Cmd": [
+    "/web_root",
+    "8080"
+]
+```
+
+Together, these define the command used to start the application:
+
+```text
+/asmttpd /web_root 8080
+```
+
+From this we can determine that the application has been configured to start using **TCP port 8080**, explaining why the earlier `curl` command connected successfully.
+
+---
+
+### Discussion
+
+Consider the following questions before continuing.
+
+- Why did we inspect the worker node rather than the control plane?
+- Would every worker node necessarily contain this image?
+- Why might Kubernetes cache images locally on worker nodes?
+- Why is it useful to understand how a container image starts?
+
+This exercise demonstrates how Kubernetes workloads can be investigated using the underlying container runtime when additional information is required.
+
+
 
 ### Task 2 - Create a YAMLfest
 
