@@ -498,7 +498,7 @@ Example output:
 I am the backend service. I'm version 2.
 ```
 
-24. Find out your kubernetes controllers' PUBLIC IP address and point your local web browser at the NodePort's port number at that address, http//{publicip}:31907 for example.
+24. Find out your kubernetes controllers' PUBLIC IP address and point your local web browser at the NodePort's port number at that address, http//{publicip}:31115 for example.
 
 ```bash
 hostname -i
