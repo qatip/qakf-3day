@@ -94,7 +94,7 @@ spec:
 </details>
 <br/>
 
-Create the daemonset.
+Create the services.
 
 <details><summary>show command</summary>
 <p>
@@ -102,16 +102,6 @@ Create the daemonset.
 ```bash
 kubectl create -f ds_service.yaml
 ```
-</p>
-</details>
-<br/>
-
-
-<details><summary>Stretch goal - optional exercise</summary>
-<p>
-
-5. **Optional stretch goal** if you `kubectl get` daemonsets in all namespaces you'll see that you only have two pods running whereas the system daemonsets both have 3. Can you work out why that is (and make it so yours works the same way). Hint: try describing the system ds pods, your ds pods and describing the nodes. This topic is not a part of this course.
-
 </p>
 </details>
 <br/>
