@@ -1,4 +1,4 @@
-# Lab 6c -- Advanced Policy as Code with Kyverno
+# Lab 6c - Kyverno deeper dive
 
 ## Objectives
 
