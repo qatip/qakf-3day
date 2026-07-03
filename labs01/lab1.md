@@ -79,7 +79,7 @@ curl {pod ip}:8080
 </p>
 </details>
 
-Notice that containers use internal IP addresses, so you cannot browse to this container from your Web browser... yet
+Notice that containers use internal IP addresses, so its only accessible from within cluster, you cannot browse to this container from your Web browser... yet
 
 <br/>Example output:
 ```
@@ -149,6 +149,8 @@ I am the backend service. I'm version 1!
 > This explains why the application responds on **TCP port 8080**.  
 > **Note** 
 > `asmttpd` is a lightweight web server used by the QA training images. It serves the web content stored in `/web_root`, with `8080` supplied as the TCP port on which the application should listen.
+>
+> Close the worker ssh session window and return to your controller ssh session
 >
 > **Considerations**
 >
