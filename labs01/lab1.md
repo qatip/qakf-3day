@@ -25,6 +25,21 @@ kubectl run simple --image=public.ecr.aws/qa-wfl/qa-wfl/qakf/sbe:v1
 ```
 pod/simple created
 ```
+Lots happens under the hood, things we will discuss more as the coures progresses..
+1. kubectl converts your command into a Kubernetes API request.
+2. The request is sent securely to the API Server.
+3. The API Server authenticates your identity.
+4. Your permissions are checked using RBAC.
+5. Any configured Admission Controllers (such as Kyverno) evaluate the request.
+6. The Pod definition is stored in etcd, the Kubernetes cluster database.
+7. The Scheduler selects the most appropriate worker node.
+8. The chosen worker node's kubelet notices a new Pod has been assigned.
+9. The kubelet instructs the container runtime (containerd) to ensure the required image is available.
+10. If the image is not already cached locally, it is downloaded from the container registry.
+11. The container runtime creates the container and starts the application.
+12. Kubernetes monitors the Pod and reports its status back to the API Server.
+
+Phew !!!!
 
 2. Get the new pod's IP address 
 
