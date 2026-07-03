@@ -512,6 +512,8 @@ hostname -i
 ```
 ***Note*** If running K8S on AWS EC2 instances, then the above command will return the PRIVATE IP address of your Controller VM. We need the PUBLIC IP address. Switch to the AWS Console and retrieve this, noting it for later use.
 
+![Pod Lifecycle](images/public-deployment-browse.png)
+
 25. Finally, delete the service and the deployment:
 
 ```
