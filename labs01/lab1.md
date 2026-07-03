@@ -146,7 +146,7 @@ I am the backend service. I'm version 1!
 > /asmttpd /web_root 8080
 > ```
 >
-> This explains why the application responds on **TCP port 8080**.
+> This explains why the application responds on **TCP port 8080**.  
 > **Note** 
 > `asmttpd` is a lightweight web server used by the QA training images. It serves the web content stored in `/web_root`, with `8080` supplied as the TCP port on which the application should listen.
 >
