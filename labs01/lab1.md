@@ -455,19 +455,27 @@ error: couldn't find port via --port flag or introspection
 See 'kubectl expose -h' for help and examples 
 ```
 
-21. The reason for this error message is that I was lazy and couldn’t be bothered to add a port stanza to the podspec. I know it’s listening on port 8080, but Kubernetes doesn’t. The real solution is to add a port stanza to the spec, which should be considered a best practice, but we’ll do it the easy way, by specifying port 8080 in the `kubectl expose` command: 
+21. The reason for this error message is that a port stanza wasn't added to the podspec. I know it’s listening on port 8080, but Kubernetes doesn’t. Open dep.yaml and add a port stanza to the spec by inserting the 3 lines shown below...
 
-<details><summary>show command</summary>
-<p>
-
-```bash
-kubectl expose deploy hello --type=NodePort --port=8080
+```
+    spec:
+      containers:
+      - image: public.ecr.aws/qa-wfl/qa-wfl/qakf/sbe:v2
+        name: sbe
+add >>  ports:
+add >>    - containerPort: 8080
+add >>      protocol: TCP
+        resources: {}
+status: {}
 ```
 
-</p>
-</details>
-<br/>
 
+
+, which should be considered a best practice, but we’ll do it the easy way, by specifying port 8080 in the `kubectl expose` command: 
+
+```
+kubectl expose deploy hello --type=NodePort --port=8080
+```
 You haven’t created an "Expose" controller, you’ve created a Service, which provides access to pods running inside the cluster via a single name or IP address. You can expose a pod, or a rs, or a deployment, or other kinds of controllers. In this case, you’ve created a NodePort service, which has exposed our service at a high-numbered port on every node in the cluster.
 
 22. Let’s see if it has worked, by `get`ting the new service: 
