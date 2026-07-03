@@ -11,6 +11,18 @@ In this lab you will:
     lifecycle.
 -   Return the cluster to its original state.
 
+**Version Note**
+
+ This lab has been developed and tested using the following software versions:
+
+ - Kubernetes v1.31.x
+ - Kind
+ - Helm 3.x
+ - Kyverno Helm Chart **3.5.2**
+ - Kyverno Application **1.18.1**
+
+ If using different versions, minor changes to the Kyverno policy syntax may be required.
+
 **Estimated time:** 25--30 minutes
 
 ------------------------------------------------------------------------
