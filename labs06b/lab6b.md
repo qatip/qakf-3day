@@ -1,102 +1,95 @@
-# Lab 6b - Introducing Policy as Code with Kyverno
+# Lab 6b -- Policy as Code with Kyverno
 
 ## Objectives
 
 In this lab you will:
 
--   Install Kyverno into a Kubernetes cluster
--   Create your first ClusterPolicy
--   Observe Kubernetes rejecting a non-compliant Deployment
--   Correct the Deployment so it complies with policy
--   Remove Kyverno and return the cluster to its original state
+-   Install the Kyverno policy engine.
+-   Create your first Kyverno `ClusterPolicy`.
+-   Prevent the deployment of a non-compliant workload.
+-   Understand where Kyverno fits within the Kubernetes request
+    lifecycle.
+-   Return the cluster to its original state.
 
-**Estimated time:** 20--30 minutes
+**Estimated time:** 25--30 minutes
 
 ------------------------------------------------------------------------
 
 ## Background
 
-Up to this point in the course, Kubernetes has accepted any valid
-manifest you have applied.
+Kubernetes validates that submitted resources are syntactically correct,
+but it does not enforce organisation-specific standards.
 
-In many organisations this is not sufficient. Platform teams often need
-to enforce organisational standards, such as:
+Kyverno extends Kubernetes by acting as an **Admission Controller**,
+allowing administrators to validate, modify and generate Kubernetes
+resources using familiar YAML syntax.
 
--   Images must not use the `latest` tag.
--   Containers must not run as root.
--   CPU and memory requests/limits must be specified.
--   Images must originate from approved registries.
--   Mandatory labels must exist.
-
-Kyverno is a Kubernetes-native Policy as Code engine that integrates
-with the Kubernetes Admission Controller. It evaluates requests before
-they are stored in etcd and can validate, mutate, generate or clean up
-Kubernetes resources.
+In this lab you will create a simple validation policy that prevents
+container images from using the `latest` tag.
 
 ------------------------------------------------------------------------
 
 # 6b.1 Install Kyverno
 
-Add the Helm repository:
+Add the Helm repository.
 
 ``` bash
 helm repo add kyverno https://kyverno.github.io/kyverno/
 helm repo update
 ```
 
-Install Kyverno:
+Install Kyverno.
 
 ``` bash
-helm install kyverno kyverno/kyverno \
-    --namespace kyverno \
-    --create-namespace
+helm install kyverno kyverno/kyverno   --namespace kyverno   --create-namespace
 ```
 
-Verify the installation:
+Verify the installation.
 
 ``` bash
 kubectl get pods -n kyverno
 ```
 
-You should see the Admission, Background, Reports and Cleanup
+You should see the Admission, Background, Cleanup and Reports
 controllers running.
 
 ------------------------------------------------------------------------
 
 # 6b.2 Explore the Installation
 
-View the resources Kyverno has added:
+View the API resources added by Kyverno.
 
 ``` bash
 kubectl api-resources | grep kyverno
 ```
 
-Check for existing policies:
+Check for existing policies.
 
 ``` bash
 kubectl get clusterpolicy
 ```
 
-Initially there should be no policies.
+No policies should currently exist.
 
 ------------------------------------------------------------------------
 
 # 6b.3 Create Your First Policy
 
-Create a file named **no-latest.yaml** containing:
+Create a file named **validate.yaml** and copy the following policy.
 
 ``` yaml
 apiVersion: kyverno.io/v1
 kind: ClusterPolicy
 
 metadata:
-  name: no-latest
+  name: validate-images
 
 spec:
   validationFailureAction: Enforce
 
   rules:
-  - name: no-latest-tag
+
+  - name: no-latest
 
     match:
       any:
@@ -105,21 +98,34 @@ spec:
           - Pod
 
     validate:
-      message: "Images tagged 'latest' are not permitted."
+
+      message: "Images tagged 'latest' are prohibited."
 
       pattern:
+
         spec:
+
           containers:
+
           - image: "!*:latest"
 ```
 
-Apply the policy:
+## Review
+
+Before applying the policy, review the YAML you have just created and consider...
+
+-   Is this a **Policy** or a **ClusterPolicy**?
+-   Which Kubernetes resource type will it evaluate?
+-   What behaviour is being enforced?
+-   What do you expect to happen if a workload uses `nginx:latest`?
+
+Apply the policy.
 
 ``` bash
-kubectl apply -f no-latest.yaml
+kubectl apply -f validate.yaml
 ```
 
-Confirm the policy exists:
+Verify that the policy has been created.
 
 ``` bash
 kubectl get clusterpolicy
@@ -129,108 +135,83 @@ kubectl get clusterpolicy
 
 # 6b.4 Test the Policy
 
-Attempt to deploy an image using the `latest` tag:
+Attempt to deploy a workload using the `latest` tag.
 
 ``` bash
 kubectl create deployment web --image=nginx:latest
 ```
 
-The deployment should be rejected with a policy violation.
+The deployment should be rejected.
 
-Now deploy a versioned image:
+Now deploy a versioned image.
 
 ``` bash
 kubectl create deployment web --image=nginx:1.29.1
 ```
 
-Verify the deployment:
+Verify the deployment.
 
 ``` bash
 kubectl get deployment
 kubectl get pods
 ```
 
-------------------------------------------------------------------------
+### Points to Observe
 
-# 6b.5 Discussion
+-   The invalid Deployment was rejected before it was created.
+-   The error message originated from the Kyverno policy.
+-   The compliant Deployment was accepted without modification.
 
-Questions:
-
--   Why did the first deployment fail?
--   Why did the second deployment succeed?
--   Would Kubernetes itself reject `nginx:latest`?
--   At what point in the Kubernetes request lifecycle does Kyverno
-    evaluate requests?
-
-Key takeaway:
-
-    kubectl apply
-          ↓
-    API Server
-          ↓
-    Authentication
-          ↓
-    Authorization (RBAC)
-          ↓
-    Admission Controllers
-          ↓
-    Kyverno
-          ↓
-    Accepted / Rejected
-          ↓
-    etcd
-
-Kyverno does not replace Kubernetes; it extends the admission process
-with organisational policy.
+Consider why this behaviour is preferable to detecting the problem after
+the workload has started.
 
 ------------------------------------------------------------------------
 
-# 6b.6 Clean Up
+# 6b.5 Cleanup
 
-Delete the test workload:
+Delete the test Deployment.
 
 ``` bash
 kubectl delete deployment web --ignore-not-found
-kubectl delete deployment nginx --ignore-not-found
-kubectl delete pod test-latest --ignore-not-found
 ```
 
-Delete Kyverno policies:
+Delete the policy.
 
 ``` bash
-kubectl delete clusterpolicy --all --ignore-not-found
-kubectl delete policy --all -A --ignore-not-found
+kubectl delete clusterpolicy validate-images
 ```
 
-Uninstall Kyverno:
+Remove Kyverno.
 
 ``` bash
 helm uninstall kyverno -n kyverno
 kubectl delete namespace kyverno --ignore-not-found
 ```
 
-Optional: remove the Kyverno CRDs:
-
-``` bash
-kubectl delete crd \
-  $(kubectl get crd -o name | grep kyverno.io) \
-  --ignore-not-found
-```
-
-Verify the cluster has been restored:
+Verify the cluster has been restored.
 
 ``` bash
 kubectl get ns
-kubectl get all -A
 kubectl api-resources | grep kyverno
 ```
 
-## Notes
+------------------------------------------------------------------------
 
--   Kyverno policies are written as Kubernetes YAML resources.
--   `ClusterPolicy` applies cluster-wide, while `Policy` is
-    namespace-scoped.
--   Four common policy types are **Validate**, **Mutate**, **Generate**,
-    and **Cleanup**.
--   In production, policies are typically introduced in **Audit** mode
-    before switching to **Enforce**.
+# Summary
+
+Congratulations.
+
+You have:
+
+-   Installed Kyverno using Helm.
+-   Created your first `ClusterPolicy`.
+-   Enforced an organisational policy.
+-   Prevented the deployment of a non-compliant workload.
+-   Restored the cluster to its original state.
+
+The next lab explores the four common Kyverno policy types:
+
+-   Validate
+-   Mutate
+-   Generate
+-   Cleanup

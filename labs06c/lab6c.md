@@ -1,134 +1,125 @@
-# Lab 6c - Policy as Code with Kyverno deeper look
+# Lab 6c -- Advanced Policy as Code with Kyverno
 
 ## Objectives
 
-In this lab you will explore the four common Kyverno policy types:
+In this lab you will build upon the previous exercise by exploring the
+four common Kyverno policy types:
 
--   **Validate** -- Reject non-compliant resources
--   **Mutate** -- Automatically modify resources
--   **Generate** -- Automatically create related resources
--   **Cleanup** -- Automatically remove resources that are no longer
-    required
+-   Validate
+-   Mutate
+-   Generate
+-   Cleanup
+
+For each policy you will:
+
+-   Review the policy before it is applied.
+-   Predict its behaviour.
+-   Apply the policy.
+-   Observe the results.
+-   Discuss where it could be used in a production environment.
 
 **Estimated time:** 45--60 minutes
 
 ------------------------------------------------------------------------
 
-# 6c.1 Validate Policies
+# 6c.1 Validation Policies
 
-## Objective
+## Background
 
-Prevent developers from deploying container images using the `latest`
-tag.
+Validation policies prevent non-compliant resources from entering the
+cluster.
 
-Create **validate.yaml**:
+### Exercise
 
-``` yaml
-apiVersion: kyverno.io/v1
-kind: ClusterPolicy
-metadata:
-  name: validate-images
-spec:
-  validationFailureAction: Enforce
-  rules:
-  - name: no-latest
-    match:
-      any:
-      - resources:
-          kinds:
-          - Pod
-    validate:
-      message: "Images tagged 'latest' are prohibited."
-      pattern:
-        spec:
-          containers:
-          - image: "!*:latest"
-```
+Create **validate.yaml** using the policy provided by your instructor.
 
-Apply the policy:
+## Review
+
+Before applying the policy:
+
+-   Which Kubernetes resource is being evaluated?
+-   What condition is being checked?
+-   Will this policy **Audit** or **Enforce** compliance?
+-   What do you predict will happen if a Deployment uses `nginx:latest`?
+
+Apply the policy.
 
 ``` bash
 kubectl apply -f validate.yaml
 ```
 
-Attempt a deployment:
+Test the policy.
 
 ``` bash
 kubectl create deployment bad --image=nginx:latest
+kubectl create deployment good --image=nginx:1.29.1
 ```
 
-Observe that the deployment is rejected.
+## Points to Observe
 
-Now deploy a versioned image:
+-   Which Deployment was rejected?
+-   Which Deployment succeeded?
+-   What message did Kyverno return?
 
-``` bash
-kubectl create deployment good --image=nginx:1.28.1
-```
+### Enterprise Note
 
-Verify:
+Validation policies are commonly introduced in **Audit** mode before
+being switched to **Enforce** once administrators are confident they
+will not disrupt existing workloads.
 
-``` bash
-kubectl get deployment
-kubectl get pods
-```
-
-Remove the policy:
+Clean up.
 
 ``` bash
+kubectl delete deployment good --ignore-not-found
 kubectl delete clusterpolicy validate-images
 ```
 
 ------------------------------------------------------------------------
 
-# 6c.2 Mutate Policies
+# 6c.2 Mutation Policies
 
-## Objective
+## Background
 
-Automatically add a label to every Deployment.
+Mutation policies automatically modify resources before they are stored
+in Kubernetes.
 
-Create **mutate.yaml**:
+### Exercise
 
-``` yaml
-apiVersion: kyverno.io/v1
-kind: ClusterPolicy
-metadata:
-  name: add-managed-label
-spec:
-  rules:
-  - name: add-label
-    match:
-      any:
-      - resources:
-          kinds:
-          - Deployment
-    mutate:
-      patchStrategicMerge:
-        metadata:
-          labels:
-            managed-by: kyverno
-```
+Create **mutate.yaml** using the policy provided by your instructor.
 
-Apply the policy:
+## Review
+
+Before applying the policy:
+
+-   Which part of the Deployment will be modified?
+-   Will the developer need to edit their manifest?
+-   What changes do you expect to see afterwards?
+
+Apply the policy.
 
 ``` bash
 kubectl apply -f mutate.yaml
+kubectl create deployment web --image=nginx:1.29.1
 ```
 
-Create a deployment:
-
-``` bash
-kubectl create deployment web --image=nginx:1.28.1
-```
-
-Inspect it:
+Inspect the Deployment.
 
 ``` bash
 kubectl get deployment web -o yaml
 ```
 
-Notice the automatically-added label.
+## Points to Observe
 
-Cleanup:
+-   Which labels or annotations were added?
+-   Did you create them yourself?
+-   When were they added?
+
+### Enterprise Note
+
+Mutation policies are frequently used to add standard labels,
+annotations, tolerations and image pull secrets across an organisation.
+
+Clean up.
 
 ``` bash
 kubectl delete deployment web
@@ -137,58 +128,51 @@ kubectl delete clusterpolicy add-managed-label
 
 ------------------------------------------------------------------------
 
-# 6c.3 Generate Policies
+# 6c.3 Generation Policies
 
-## Objective
+## Background
 
-Automatically create a ConfigMap whenever a Namespace is created.
+Generation policies automatically create supporting Kubernetes
+resources.
 
-Create **generate.yaml**:
+### Exercise
 
-``` yaml
-apiVersion: kyverno.io/v1
-kind: ClusterPolicy
-metadata:
-  name: namespace-default-config
-spec:
-  rules:
-  - name: generate-config
-    match:
-      any:
-      - resources:
-          kinds:
-          - Namespace
-    generate:
-      kind: ConfigMap
-      apiVersion: v1
-      name: default-config
-      namespace: "{{request.object.metadata.name}}"
-      synchronize: true
-      data:
-        data:
-          environment: training
-```
+Create **generate.yaml** using the policy provided by your instructor.
 
-Apply the policy:
+## Review
+
+Before applying the policy:
+
+-   Which resource triggers this policy?
+-   Which new resource will Kyverno create?
+-   Where will it be created?
+
+Apply the policy.
 
 ``` bash
 kubectl apply -f generate.yaml
-```
-
-Create a namespace:
-
-``` bash
 kubectl create namespace finance
 ```
 
-Verify:
+Verify the generated resource.
 
 ``` bash
 kubectl get configmap -n finance
 kubectl describe configmap default-config -n finance
 ```
 
-Cleanup:
+## Points to Observe
+
+-   Was the ConfigMap created automatically?
+-   Would this reduce administrative effort?
+-   What other resources could be generated automatically?
+
+### Enterprise Note
+
+Many organisations automatically generate ResourceQuotas, LimitRanges
+and default NetworkPolicies whenever a new namespace is created.
+
+Clean up.
 
 ``` bash
 kubectl delete namespace finance
@@ -199,69 +183,48 @@ kubectl delete clusterpolicy namespace-default-config
 
 # 6c.4 Cleanup Policies
 
-## Objective
+## Background
 
-Automatically remove completed Jobs.
+Cleanup policies automatically remove resources that are no longer
+required.
 
-Create **cleanup.yaml**:
+### Exercise
 
-``` yaml
-apiVersion: kyverno.io/v2beta1
-kind: CleanupPolicy
-metadata:
-  name: delete-completed-jobs
-spec:
-  schedule: "*/1 * * * *"
-  match:
-    any:
-    - resources:
-        kinds:
-        - Job
-  conditions:
-    any:
-    - key: "{{ target.status.succeeded }}"
-      operator: Equals
-      value: 1
-```
+Create **cleanup.yaml** using the policy provided by your instructor.
 
-Apply the policy:
+## Review
+
+Before applying the policy:
+
+-   Which resources will be removed?
+-   Under what conditions?
+-   Why might automatic cleanup be useful?
+
+Apply the policy.
 
 ``` bash
 kubectl apply -f cleanup.yaml
-```
-
-Create a simple Job:
-
-``` yaml
-apiVersion: batch/v1
-kind: Job
-metadata:
-  name: cleanup-demo
-spec:
-  template:
-    spec:
-      restartPolicy: Never
-      containers:
-      - name: hello
-        image: busybox
-        command: ["echo","Hello Kyverno"]
-```
-
-Apply the Job:
-
-``` bash
 kubectl apply -f job.yaml
 ```
 
-Watch it complete:
+Watch the Job.
 
 ``` bash
 kubectl get jobs -w
 ```
 
-Observe the completed Job being removed automatically.
+## Points to Observe
 
-Cleanup:
+-   When did the Job complete?
+-   When was it deleted?
+-   How might this help keep a cluster tidy?
+
+### Enterprise Note
+
+Cleanup policies reduce administrative effort and prevent obsolete
+resources from accumulating in long-running clusters.
+
+Clean up.
 
 ``` bash
 kubectl delete cleanuppolicy delete-completed-jobs
@@ -269,18 +232,23 @@ kubectl delete cleanuppolicy delete-completed-jobs
 
 ------------------------------------------------------------------------
 
-# Review
+# Summary
 
-  Policy Type   Purpose
-  ------------- -----------------------------------------
+You have successfully explored the four common Kyverno policy types.
+
+  Policy Type   Primary Purpose
+  ------------- -------------------------------------------
   Validate      Reject non-compliant resources
-  Mutate        Modify resources before they are stored
-  Generate      Create related resources automatically
+  Mutate        Modify resources during admission
+  Generate      Automatically create supporting resources
   Cleanup       Remove obsolete resources
 
-## Discussion
+## Final Discussion
 
--   Which policy type would be most useful in your organisation?
--   Which policies should be enforced immediately?
--   Which should begin in Audit mode before being enforced?
--   How does Kyverno complement RBAC and Pod Security Admission?
+Discuss the following with your instructor.
+
+-   Which policy would you deploy first in your organisation?
+-   Which policy would provide the greatest operational benefit?
+-   Which policies should begin in Audit mode?
+-   How does Kyverno complement RBAC, Pod Security Admission and Network
+    Policies?
