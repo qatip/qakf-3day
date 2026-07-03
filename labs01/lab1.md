@@ -182,12 +182,10 @@ kubectl run hello --image=public.ecr.aws/qa-wfl/qa-wfl/qakf/sbe:v1 --dry-run=cli
 ```bash
 cat pod.yaml 
 ```
-
 </p>
 </details>
 <br/>
-
-Note that there are a number of properties. Some of these are required and have been added by the api-server when we ran the pod,,some are optional. Note the API version, v1. Pods are part of the “core” kubernetes API. Pods have a “kind” of “Pod”. All k8s resources have a “kind”. Some metadata has also been added. The creationTimestamp is null because the pod was never actually created. A resources stanza has been added to the podspec (more on that much later on) and the pod has a status of null (again, because it was never created). The podspec section is the most important, because all of the controllers we’ll be looking at create and manage pods, somewhere in their manifest. 
+Note that there are a number of properties. Some of these are required and have been added by the api-server when we ran the pod,some are optional. Note the API version, v1. Pods are part of the “core” kubernetes API. Pods have a “kind” of “Pod”. All k8s resources have a “kind”. Some metadata has also been added. The creationTimestamp is null because the pod was never actually created. A resources stanza has been added to the podspec (more on that much later on) and the pod has a status of null (again, because it was never created). The podspec section is the most important, because all of the controllers we’ll be looking at create and manage pods, somewhere in their manifest. 
 
 <br/>
 
@@ -208,6 +206,18 @@ spec:
   restartPolicy: Always 
 status: {} 
 ```
+7. Let’s create a pod from the manifest. Tell Kubernetes to `apply` this manifest to the cluster. 
+
+<details><summary>show command</summary>
+<p>
+
+```bash
+kubectl apply -f pod.yaml 
+```
+
+</p>
+</details>
+<br/>
 
 ### Task 3 - Create a ReplicaSet
 
