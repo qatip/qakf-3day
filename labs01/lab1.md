@@ -108,7 +108,7 @@ I am the backend service. I'm version 1!
 >
 > **ii. Connect to the worker node**
 >
-> Using the AWS Management Console, identify the corresponding EC2 instance and establish an SSH session to that worker node.
+> Using the AWS Management Console, identify the corresponding EC2 instance and establish an SSH session to the worker node on which your container is running.
 >
 > **iii. Locate the image**
 >
@@ -128,7 +128,7 @@ I am the backend service. I'm version 1!
 > sudo crictl inspecti <image-id>
 > ```
 >
-> Locate the following section:
+> Scroll down to the following section:
 >
 > ```text
 > "Entrypoint": [
