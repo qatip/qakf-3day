@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: lab2
+  name: lab2
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: lab2
+  template:
+    metadata:
+      labels:
+        app: lab2
+        owner: glorfindel
+    spec:
+      containers:
+      - image: httpd
+        name: httpd
+status: {}

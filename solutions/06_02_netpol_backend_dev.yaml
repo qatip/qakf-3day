@@ -1,0 +1,19 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-8080-from-frontend
+  namespace: development
+spec:
+  podSelector:
+    matchLabels:
+      app: backend
+  ingress:
+  - from:
+      - podSelector:
+          matchLabels:
+            app: frontend
+      - namespaceSelector:
+          matchLabels:
+            kubernetes.io/metadata.name: development
+    ports:
+    - port: 8080

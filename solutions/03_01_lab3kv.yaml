@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    run: kvstore
+  name: kvstore
+spec:
+  containers:
+  - image: abhirockzz/kvstore
+    name: kvstore

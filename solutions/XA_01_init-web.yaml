@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: init-web
+  name: init-web
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: init-web
+  template:
+    metadata:
+      labels:
+        app: init-web
+    spec:
+      containers:
+      - image: nginx
+        name: nginx

@@ -1,0 +1,10 @@
+#!/bin/bash
+#lab2 changes
+kubectl create namespace production
+kubectl create namespace development
+#lab3 changes
+kubectl create configmap settings --from-literal=colour=purple --namespace development
+kubectl create configmap settings --from-literal=colour=green --namespace production
+kubectl create secret generic secrets --from-literal password=MySecretPhrase --namespace development
+kubectl create secret generic secrets --from-literal password=ReallySecret --namespace production
+

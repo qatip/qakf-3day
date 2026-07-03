@@ -1,0 +1,22 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: randoms
+spec:
+  schedule: "* * * * *"
+  jobTemplate:
+    metadata:
+      name: randoms
+    spec:
+      template:
+        spec:
+          restartPolicy: Never
+          containers:
+          - name: example
+            image: python
+            command:
+            - python3
+            - -c
+            - |
+              import random
+              print(random.randrange(1,100))

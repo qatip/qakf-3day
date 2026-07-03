@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: init-web
+  name: init-web
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: init-web
+  template:
+    metadata:
+      labels:
+        app: init-web
+    spec:
+      containers:
+      - image: nginx
+        name: nginx
+        volumeMounts:
+        - name: init-vol
+          mountPath: /usr/share/nginx/html
+      initContainers:
+      - name: init-cont
+        image: alpine
+        command:
+          - sh
+          - "-c"
+          - |
+            echo "<h1>Welcome to my initContainer homepage! </h1>" >> "/init/index.html"
+            sleep 30
+        volumeMounts:
+          - name: init-vol
+            mountPath: "/init"
+      volumes:
+        - name: init-vol
+          emptyDir: {}

@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: lab3web
+  name: lab3web
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: lab3web
+  template:
+    metadata:
+      labels:
+        app: lab3web
+    spec:
+      containers:
+      - image: httpd
+        name: httpd
+        volumeMounts:
+        - name: homepage
+          mountPath: /usr/local/apache2/htdocs
+      volumes:
+      - name: homepage
+        configMap:
+          name: homepage
+          

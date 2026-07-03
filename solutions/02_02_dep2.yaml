@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: lab02second
+  name: lab02second
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: lab02second
+  strategy: {}
+  template:
+    metadata:
+      labels:
+        app: lab02second
+        owner: glorfindel
+    spec:
+      containers:
+      - image: nginx
+        name: nginx
+status: {}

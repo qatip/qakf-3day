@@ -1,0 +1,36 @@
+#!/bin/bash
+#reset
+kubectl delete namespace production development
+#lab2 changes
+kubectl create namespace production
+kubectl create namespace development
+#lab3 changes
+kubectl create configmap settings --from-literal=colour=purple --namespace development
+kubectl create configmap settings --from-literal=colour=green --namespace production
+kubectl create secret generic secrets --from-literal password=MySecretPhrase --namespace development
+kubectl create secret generic secrets --from-literal password=ReallySecret --namespace production
+#lab4 changes
+#create fe and be in prod and dev
+kubectl create deploy backend --image=public.ecr.aws/qa-wfl/qa-wfl/qakf/sbe:v1 -n production 
+kubectl create deploy backend --image=public.ecr.aws/qa-wfl/qa-wfl/qakf/sbe:v2 -n development
+kubectl expose deployment backend --port 80 --target-port 8080 --name backend --namespace production 
+kubectl expose deployment backend --port 80 --target-port 8080 --name backend -n development
+kubectl create -f ../solutions/04_01_lab4frontend.yaml -n production
+kubectl create -f ../solutions/04_01_lab4frontend.yaml -n development
+kubectl expose deployment frontend --port 80 --target-port 8080 --name frontend --namespace production 
+kubectl expose deployment frontend --port 80 --target-port 8080 --name frontend -n development
+helm install ingress-nginx ingress-nginx \
+  --repo https://kubernetes.github.io/ingress-nginx \
+  --set controller.service.type=NodePort \
+  --namespace ingress-nginx --create-namespace
+sleep 30
+#modify ingresses if running in AWS
+if [ $(hostname -i) != "172.17.1.10" ]
+then
+  newip=$(curl -s http://169.254.169.254/latest/meta-data/public-ipv4/)
+  sed -i "s/172.17.1.10/$newip/g" ../solutions/04_03_prod_ingress.yaml
+  sed -i "s/172.17.1.10/$newip/g" ../solutions/04_03_dev_ingress.yaml
+fi
+#create ingresses for fe and be
+kubectl create -f ../solutions/04_03_dev_ingress.yaml
+kubectl create -f ../solutions/04_03_prod_ingress.yaml

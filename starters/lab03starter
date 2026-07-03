@@ -1,0 +1,4 @@
+#!/bin/bash
+#lab2 changes
+kubectl create namespace production
+kubectl create namespace development

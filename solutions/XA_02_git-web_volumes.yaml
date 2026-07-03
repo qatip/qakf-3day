@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: git-web
+  name: git-web
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: git-web
+  strategy: {}
+  template:
+    metadata:
+      labels:
+        app: git-web
+    spec:
+      containers:
+      - image: httpd
+        name: httpd
+        volumeMounts:
+        - name: git-vol
+          mountPath: /usr/local/apache2/htdocs/
+      volumes:
+      - name: git-vol
+        emptyDir: {}
