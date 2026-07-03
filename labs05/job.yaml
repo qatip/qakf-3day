@@ -17,3 +17,4 @@ spec:
         - |
           import random
           print(random.randrange(1,100))
+  completions: 10

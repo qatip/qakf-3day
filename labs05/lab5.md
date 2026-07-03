@@ -1,9 +1,9 @@
 # Lab 5 - Security
 ## 5.1 RBAC
 
-We're going to create a pod that prints all of the logs of all of our randoms jobs.
+We're going to create a pod that prints all of the logs of of 10 random number generator jobs.
 
-1. Recreate the Job from the previous lab (with 10 completions). Give it a few moments to complete.
+1. Examine the provided job.yaml and then create the jobs.
 
 <details><summary>show command</summary>
 <p>
