@@ -79,7 +79,7 @@ curl 10.42.0.10:8080
 </p>
 </details>
 
-test test test
+Notice that containers use internal IP addresses, so you cannot browse to this container from your Web browser... yet
 
 <br/>Example output:
 ```
