@@ -94,6 +94,16 @@ spec:
 </details>
 <br/>
 
+Create the daemonset.
+
+<details><summary>show command</summary>
+<p>
+
+```bash
+kubectl create -f ds_service.yaml
+```
+
+
 <details><summary>Stretch goal - optional exercise</summary>
 <p>
 
