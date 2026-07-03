@@ -20,11 +20,6 @@ kubectl run simple --image=public.ecr.aws/qa-wfl/qa-wfl/qakf/sbe:v1
 </p>
 </details>
 
-
-<br/>Example output:
-```
-pod/simple created
-```
 Lots happens under the hood, things we will discuss more as the coures progresses.. 
  
 i. kubectl converts your command into a Kubernetes API request.  
@@ -41,6 +36,12 @@ xi. The container runtime creates the container and starts the application.
 xii. Kubernetes monitors the Pod and reports its status back to the API Server.  
 
 Phew !!!!
+
+
+<br/>Example output:
+```
+pod/simple created
+```
 
 2. Get the new pod's IP address 
 
