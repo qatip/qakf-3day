@@ -219,6 +219,12 @@ kubectl apply -f pod.yaml
 </details>
 <br/>
 
+8. Confirm that you now have two containers, both based on the same image, one created interactively (simple), the other through a manifest (hello). 
+
+```bash
+kubectl get pod 
+```
+
 ### Task 3 - Create a ReplicaSet
 
 6. A Pod is fine, but we probably want to “guarantee” that we have at least one pod of our application running at all times. This is a job for a ReplicaSet! Create a file called rs.yaml and add the following content to it (there is no convenient shorthand for generating a ReplicaSet manifest): 
