@@ -10,15 +10,9 @@ The container images we'll use for this lab are ones we'll keep using throughout
 
 1. Create a pod named `simple`, using the `public.ecr.aws/qa-wfl/qa-wfl/qakf/sbe:v1` image
 
-<details><summary>show command</summary>
-<p>
-
-```bash
+```
 kubectl run simple --image=public.ecr.aws/qa-wfl/qa-wfl/qakf/sbe:v1
 ```
-
-</p>
-</details>
 
 Lots happens under the hood, things we will discuss more as the course progresses.. 
  
@@ -45,17 +39,11 @@ pod/simple created
 
 2. Get the new pod's IP address 
 
-<details><summary>show command</summary>
-<p>
-
-```bash
+```
 kubectl get pods --output wide
 #or
 kubectl get pod simple --output=custom-columns=IP:.status.podIP --no-headers
 ```
-
-</p>
-</details>
 
 <br/>Example output (your IP dill differ):
 ```
@@ -69,19 +57,14 @@ simple   1/1     Running   0          3m59s   10.42.0.10 ...
 
 3. **cURL** your pod's IP address at port 8080
 
-<details><summary>show command</summary>
-<p>
-
-```bash
+```
 curl {pod ip}:8080
 ```
 
-</p>
-</details>
-
 Notice that containers use internal IP addresses, so its only accessible from within cluster, you cannot browse to this container from your Web browser... yet
 
-<br/>Example output:
+Example output:
+
 ```
 I am the backend service. I'm version 1!
 ```
@@ -146,8 +129,9 @@ I am the backend service. I'm version 1!
 > /asmttpd /web_root 8080
 > ```
 >
-> This explains why the application responds on **TCP port 8080**.  
-> **Note** 
+> This explains why the application responds on **TCP port 8080**.
+
+> ***Note*** 
 > `asmttpd` is a lightweight web server used by the QA training images. It serves the web content stored in `/web_root`, with `8080` supplied as the TCP port on which the application should listen.
 >
 > Close the *worker* ssh session window and return to your *controller* ssh session.
