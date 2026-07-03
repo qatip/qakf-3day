@@ -57,7 +57,7 @@ kubectl get pod simple --output=custom-columns=IP:.status.podIP --no-headers
 </p>
 </details>
 
-<br/>Example output:
+<br/>Example output (your IP dill differ):
 ```
 NAME     READY   STATUS    RESTARTS   AGE     IP         ...
 simple   1/1     Running   0          3m59s   10.42.0.10 ...
@@ -67,13 +67,13 @@ simple   1/1     Running   0          3m59s   10.42.0.10 ...
 10.42.0.10
 ```
 
-3. **cURL** the pod's IP address at port 8080
+3. **cURL** your pod's IP address at port 8080
 
 <details><summary>show command</summary>
 <p>
 
 ```bash
-curl 10.42.0.10:8080
+curl {pod ip}.10:8080
 ```
 
 </p>
