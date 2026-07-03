@@ -47,9 +47,11 @@ spec:
     spec:
       containers:
       - image: httpd
-        name: httpd
+        name: http
+      tolerations:
+      - effect: NoSchedule
+        operator: Exists
 ```
-
 </p>
 </details>
 <br/>
