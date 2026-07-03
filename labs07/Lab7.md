@@ -1,4 +1,4 @@
-# Lab 7 -- Policy as Code with Kyverno
+# Lab 7 -- Introducing Policy as Code with Kyverno
 
 ## Objectives
 
