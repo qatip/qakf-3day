@@ -104,7 +104,7 @@ I am the backend service. I'm version 1!
 > simple   1/1     Running   10.42.0.6   k8s-worker-1
 > ```
 >
-> Notice the **NODE** column. This tells you which Kubernetes worker is running the Pod.
+> Notice the **NODE** column. This tells you which Kubernetes worker is running the Pod (yours may differ).
 >
 > **ii. Connect to the worker node**
 >
@@ -150,7 +150,7 @@ I am the backend service. I'm version 1!
 > **Note** 
 > `asmttpd` is a lightweight web server used by the QA training images. It serves the web content stored in `/web_root`, with `8080` supplied as the TCP port on which the application should listen.
 >
-> **Discussion**
+> **Considerations**
 >
 > - Why did we inspect the worker rather than the control plane?
 > - Would every worker necessarily contain this image?
