@@ -210,11 +210,9 @@ status: {}
 
 <details><summary>show command</summary>
 <p>
-
 ```bash
 kubectl apply -f pod.yaml 
 ```
-
 </p>
 </details>
 <br/>
