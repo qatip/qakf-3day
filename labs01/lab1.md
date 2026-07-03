@@ -25,7 +25,8 @@ kubectl run simple --image=public.ecr.aws/qa-wfl/qa-wfl/qakf/sbe:v1
 ```
 pod/simple created
 ```
-Lots happens under the hood, things we will discuss more as the coures progresses..  
+Lots happens under the hood, things we will discuss more as the coures progresses.. 
+ 
 i. kubectl converts your command into a Kubernetes API request.  
 ii. The request is sent securely to the API Server.  
 iii. The API Server authenticates your identity.  
