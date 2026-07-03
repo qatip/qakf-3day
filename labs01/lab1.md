@@ -163,26 +163,16 @@ I am the backend service. I'm version 1!
 
 4. Let’s look at a PodSpec. Similar command to before, but we’re going to perform a `client`-side `dry-run` and output the result in YAML format to a file named pod.yaml. This is a convenient way to create a kubernetes manifest: 
 
-<details><summary>show command</summary>
-<p>
 ```bash
 kubectl run hello --image=public.ecr.aws/qa-wfl/qa-wfl/qakf/sbe:v1 --dry-run=client -o yaml > pod.yaml 
 ```
-</p>
-</details>
-<br/>
 
 5. Now examine the pod.yaml file. 
-
-<details><summary>show command</summary>
-<p>
 
 ```bash
 cat pod.yaml 
 ```
-</p>
-</details>
-<br/>
+
 Note that there are a number of properties. Some of these are required and have been added by the api-server when we ran the pod,some are optional. Note the API version, v1. Pods are part of the “core” kubernetes API. Pods have a “kind” of “Pod”. All k8s resources have a “kind”. Some metadata has also been added. The creationTimestamp is null because the pod was never actually created. A resources stanza has been added to the podspec (more on that much later on) and the pod has a status of null (again, because it was never created). The podspec section is the most important, because all of the controllers we’ll be looking at create and manage pods, somewhere in their manifest. 
 
 <br/>
@@ -274,16 +264,18 @@ kubectl get pod,rs
 
 Example output:
 ```
-NAME              READY   STATUS              RESTARTS   AGE 
-pod/hello-4r2w5   0/1     ContainerCreating   0          11s 
-pod/hello-m2hnb   1/1     Running             0          11s 
-pod/hello-vr7wl   1/1     Running             0          11s 
+NAME              READY   STATUS    RESTARTS   AGE
+pod/hello         1/1     Running   0          38m
+pod/hello-d2g6b   1/1     Running   0          9s
+pod/hello-fcd9g   1/1     Running   0          9s
+pod/hello-h5lgk   1/1     Running   0          9s
+pod/simple        1/1     Running   0          56m
 
-NAME                    DESIRED   CURRENT   READY   AGE 
-replicaset.apps/hello   3         3         2       11s 
+NAME                    DESIRED   CURRENT   READY   AGE
+replicaset.apps/hello   3         3         3       9s
 ```
 
-Note that your pods now have auto-generated names and in the example output above, the Desired is 3 but the Ready is 2 because one pod is still in a ContainerCreating state. Your output may show 0-3 Ready pods depending on how fast you type! 
+Note that pods that are part of a replicaset have auto-generated name suffixes. The READY count will reflect the DESIRED coount once all pods are created. Your output may show 0-3 READY pods depending on how fast you typed! 
 
 ### Task 4 - Delete a Pod managed by a ReplicaSet
 
@@ -293,7 +285,7 @@ Note that your pods now have auto-generated names and in the example output abov
 <p>
 
 ```bash
-kubectl delete pod hello-4r2w5 --wait=false && kubectl get pods,rs
+kubectl delete pod hello-d2g6b --wait=false && kubectl get pods,rs
 ```
 
 </p>
@@ -304,14 +296,16 @@ We told kubectl not to wait for finalisers so hopefully we can see output simila
 
 Example output:
 ```bash
-NAME              READY   STATUS              RESTARTS   AGE 
-pod/hello-6sxx7   0/1     ContainerCreating   0          2s 
-pod/hello-kmgdb   0/1     Terminating         0          61s 
-pod/hello-rdbls   1/1     Running             0          114s 
-pod/hello-vr7wl   1/1     Running             0          15m 
+NAME              READY   STATUS              RESTARTS   AGE
+pod/hello         1/1     Running             0          47m
+pod/hello-d2g6b   1/1     Terminating         0          8m42s
+pod/hello-fcd9g   1/1     Running             0          8m42s
+pod/hello-h5lgk   1/1     Running             0          8m42s
+pod/hello-rm7lw   0/1     ContainerCreating   0          0s
+pod/simple        1/1     Running             0          65m
 
-NAME                    DESIRED   CURRENT   READY   AGE 
-replicaset.apps/hello   3         3         2       15m 
+NAME                    DESIRED   CURRENT   READY   AGE
+replicaset.apps/hello   3         3         2       8m42s
 ```
 
 The ReplicaSet controller “noticed” almost immediately that we were down to 2 pods and told the api-server to run a new one. How does it know? The labels. In the spec there is a `matchLabels` stanza which is looking for a `label` of `app` with a value of `hello`. The podspec in the template specifies that each pod should be created with a label of app with a value of hello. The replicaset asks the api-server how many pods have that label and if the number is wrong, it tells the api-server to add or remove pods 
@@ -320,14 +314,18 @@ The ReplicaSet controller “noticed” almost immediately that we were down to 
 
 Now let’s try to update our replicaset to use v2 of the awesome application. 
 
-10. Edit (or create a copy of) your rs.yaml file and change the image in the podspec to point to :v2 (it should be the very last line) 
+10. Make a copy of rs.yaml and name it rs2.yaml
+
+```bash
+kubectl cp rs.yamp rs2.yaml
+```
+11. Edit rs2.yaml file and change the image in the podspec to point to :v2 (it should be the very last line) 
 
 ```yaml
         image: public.ecr.aws/qa-wfl/qa-wfl/qakf/sbe:v2 
 ```
  
-
-11. Now try to apply the new version. 
+12. Now try to apply the new version. 
 
 <details><summary>show command</summary>
 <p>
@@ -340,10 +338,9 @@ kubectl apply -f rs2.yaml
 </details>
 <br/>
 
+13. Looks like it worked. But if you list all your pods again, you’ll see that they haven’t been recreated. 
 
-12. Looks like it worked. But if you list all your pods again, you’ll see that they haven’t been recreated. 
-
-13. Try finding the pods’ images by piping the output of `kubectl describe` to `grep` (this command is case sensitive): 
+14. Try finding the pods’ images by piping the output of `kubectl describe` to `grep` (this command is case sensitive): 
 
 <details><summary>show command</summary>
 <p>
@@ -360,7 +357,7 @@ They’re all running v1 still.
 
 A ReplicaSet will only apply this configuration change when it creates a new pod. Try deleting a pod manually again and then retry finding the pods’ images (the grep command above). You’ll now have one v2 and two v1s. 
 
-14. Try scaling the ReplicaSet to zero and then back up to 3 again: 
+15. Try scaling the ReplicaSet to zero and then back up to 3 again: 
 
 <details><summary>show command</summary>
 <p>
@@ -377,37 +374,51 @@ kubectl scale rs hello --replicas=3
 
 You’ll now have 3 v2s if you redo the grep command. 
 
-### Task 7 - Recreate the ReplicaSet
+### Task 7 - Delete the ReplicaSet and Pods
 
-15. Delete the rs. 
+15. Delete all pods
 
-<details><summary>show command</summary>
-<p>
+```bash
+kubectl delete pods --all 
+```
+
+16. Verify all pods are deleted
+
+```bash
+kubectl get pods 
+```
+Example output:
+```bash
+NAME          READY   STATUS    RESTARTS   AGE
+hello-5cr69   1/1     Running   0          116s
+hello-g5vxk   1/1     Running   0          116s
+hello-zc5km   1/1     Running   0          116s
+```
+What happnened ? 
+
+If a replicaset exists then deleting member pods will simply trigger an automatic recreate. 
+
+17. Delete the replicaset and all of its member pods.
 
 ```bash
 kubectl delete rs hello 
 ```
 
-</p>
-</details>
-<br/>
+18. Verify all pods are deleted
+
+```bash
+kubectl get pods 
+```
 
 So that’s fine and it might be desirable behaviour but we might want a controller that manages the rolling-out of new versions for us.
 
 ### Task 7 - Create a Deployment
 
-16. Enter the `Deployment` controller. We’ll create a deployment using the handy command line shorthand again: 
+19. A controller can be used to manage the rolling-out of new versions of replicasets for us. Enter the `Deployment` controller. We’ll create a deployment using the handy command line shorthand again: 
 
-<details><summary>show command</summary>
-<p>
-
-```bash
+```
 kubectl create deploy hello --image=public.ecr.aws/qa-wfl/qa-wfl/qakf/sbe:v1 --replicas=3 --dry-run=client -o yaml > dep.yaml
 ```
-
-</p>
-</details>
-<br/>
 
 17. Take a look at the manifest file. It looks an awful lot like the ReplicaSet yaml, except it has a `kind` of Deployment and there’s a strategy stanza as well. More about that later. Honest! 
 
