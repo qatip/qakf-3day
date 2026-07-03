@@ -1,4 +1,4 @@
-# Lab 8 - Policy as Code with Kyverno deeper look
+# Lab 6c - Policy as Code with Kyverno deeper look
 
 ## Objectives
 
@@ -14,7 +14,7 @@ In this lab you will explore the four common Kyverno policy types:
 
 ------------------------------------------------------------------------
 
-# 8.1 Validate Policies
+# 6c.1 Validate Policies
 
 ## Objective
 
@@ -80,7 +80,7 @@ kubectl delete clusterpolicy validate-images
 
 ------------------------------------------------------------------------
 
-# 8.2 Mutate Policies
+# 6c.2 Mutate Policies
 
 ## Objective
 
@@ -137,7 +137,7 @@ kubectl delete clusterpolicy add-managed-label
 
 ------------------------------------------------------------------------
 
-# 8.3 Generate Policies
+# 6c.3 Generate Policies
 
 ## Objective
 
@@ -197,7 +197,7 @@ kubectl delete clusterpolicy namespace-default-config
 
 ------------------------------------------------------------------------
 
-# 8.4 Cleanup Policies
+# 6c.4 Cleanup Policies
 
 ## Objective
 

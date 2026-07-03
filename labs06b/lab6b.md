@@ -1,4 +1,4 @@
-# Lab 7 - Introducing Policy as Code with Kyverno
+# Lab 6b - Introducing Policy as Code with Kyverno
 
 ## Objectives
 
@@ -35,7 +35,7 @@ Kubernetes resources.
 
 ------------------------------------------------------------------------
 
-# 7.1 Install Kyverno
+# 6b.1 Install Kyverno
 
 Add the Helm repository:
 
@@ -63,7 +63,7 @@ controllers running.
 
 ------------------------------------------------------------------------
 
-# 7.2 Explore the Installation
+# 6b.2 Explore the Installation
 
 View the resources Kyverno has added:
 
@@ -81,7 +81,7 @@ Initially there should be no policies.
 
 ------------------------------------------------------------------------
 
-# 7.3 Create Your First Policy
+# 6b.3 Create Your First Policy
 
 Create a file named **no-latest.yaml** containing:
 
@@ -127,7 +127,7 @@ kubectl get clusterpolicy
 
 ------------------------------------------------------------------------
 
-# 7.4 Test the Policy
+# 6b.4 Test the Policy
 
 Attempt to deploy an image using the `latest` tag:
 
@@ -152,7 +152,7 @@ kubectl get pods
 
 ------------------------------------------------------------------------
 
-# 7.5 Discussion
+# 6b.5 Discussion
 
 Questions:
 
@@ -185,7 +185,7 @@ with organisational policy.
 
 ------------------------------------------------------------------------
 
-# 7.6 Clean Up
+# 6b.6 Clean Up
 
 Delete the test workload:
 

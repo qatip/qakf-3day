@@ -1,5 +1,5 @@
-# Lab 6 - Security
-## 6.1 RBAC
+# Lab 6a - Security
+## 6a.1 RBAC
 
 We're going to create a pod that prints all of the logs of all of our randoms jobs.
 
@@ -162,7 +162,7 @@ Example output:
 
 <br/>
 
-## 6.2 Network Policies
+## 6a.2 Network Policies
 
 7. **cURL** the frontend service and the backend service in each ns. You'll need to `get services` in both namespaces and then **cURL** their ClusterIP addresses.
 
@@ -332,7 +332,7 @@ spec:
 </details>
 <br/>
 
-## 6.3 Pod Security
+## 6a.3 Pod Security
 
 16. Create an httpd pod with a `securityContext` that sets `runAsNonRoot` to `true`.
 
