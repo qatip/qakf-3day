@@ -208,9 +208,9 @@ status: {}
 ```
 7. Let’s create a pod from the manifest. Tell Kubernetes to `apply` this manifest to the cluster. 
 
-``bash
+```bash
 kubectl apply -f pod.yaml 
-``
+```
 
 
 8. Confirm that you now have two containers, both based on the same image, one created interactively (simple), the other through a manifest (hello). 
