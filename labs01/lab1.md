@@ -165,11 +165,9 @@ I am the backend service. I'm version 1!
 
 <details><summary>show command</summary>
 <p>
-
 ```bash
 kubectl run hello --image=public.ecr.aws/qa-wfl/qa-wfl/qakf/sbe:v1 --dry-run=client -o yaml > pod.yaml 
 ```
-
 </p>
 </details>
 <br/>
