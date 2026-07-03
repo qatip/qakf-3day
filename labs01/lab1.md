@@ -334,7 +334,7 @@ hello-zc5km   1/1     Running   0          116s
 ```
 What happnened ? 
 
-If a replicaset exists then deleting member pods will simply trigger an automatic recreate. 
+If a replicaset exists, then deleting member pods will simply trigger automatic replacements. 
 
 18. Delete the replicaset and all of its member pods.
 
@@ -350,7 +350,7 @@ kubectl get pods
 
 ### Task 7 - Create a Deployment
 
-20. A controller can be used to manage the rolling-out of new versions of replicasets for us. Enter the `Deployment` controller. We’ll create a deployment using the handy command line shorthand again: 
+20. A controller can be used to manage the rolling-out of new versions of replicasets for us. This is the Deployment controller. We’ll create a deployment using the handy command line shorthand again: 
 
 ```
 kubectl create deploy hello --image=public.ecr.aws/qa-wfl/qa-wfl/qakf/sbe:v1 --replicas=3 --dry-run=client -o yaml > dep.yaml
