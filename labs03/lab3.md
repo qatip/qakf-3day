@@ -134,19 +134,19 @@ kubectl delete pod kvstore
 
 ### Task 2 - create a ConfigMap from an index.html file
 
-11. Create a deployment YAMLfest named `lab3web`, using the `httpd` image with 3 replicas, in a file named `lab3web.yaml`
+10. Create a deployment YAMLfest named `lab3web`, using the `httpd` image with 3 replicas, in a file named `lab3web.yaml`
 
 ```bash
 kubectl create deployment lab3web --image=httpd --replicas=3 --dry-run=client -o yaml > lab3web.yaml
 ```
 
-12. `Apply` the YAMLfest and `expose` it as a service on port 80.
+10. `Apply` the YAMLfest and `expose` it as a service on port 80.
 
 ```bash
 kubectl apply -f lab3web.yaml && kubectl expose deployment lab3web --port=80
 ```
 
-13. Find out the `ClusterIP` of the new service and **cURL** it.
+12. Find out the `ClusterIP` of the new service and **cURL** it.
 
 ```bash
 kubectl get service lab3web
@@ -201,7 +201,7 @@ kubectl create configmap homepage --from-file ~/index.html
 17. Copy lab3web.yaml to lab3web2.yaml
 
 ```
-cp lab3web.yaml lab3web.yaml
+cp lab3web.yaml lab3web2.yaml
 ```
 
 18. In lab3web.yaml, add a configMap volume, using the newly-created homepage configmap. Add a volumeMount to the container with a mountPath of /usr/local/apache2/htdocs. [NOTE: We could add additional files to the configmap and they'd be mounted in the same directory]
