@@ -313,11 +313,7 @@ spec:
             configMapKeyRef:
               name: settings
               key: colour
-        - name: NAMESPACE
-          valueFrom:
-            fieldRef:
-              fieldPath: metadata.namespace
-```
+              
 
 22. Create a sfe deployment in both the production and development namespaces. You did this in the second lab.
 
