@@ -100,17 +100,10 @@ Note that CoreDNS tried a lot of variations of the name `backend` but one of the
 
 5. There's only one placeholder remaining in our simple front end application, for the data from the backing service. Let's finish that off now by `apply`ing (a copy of) the sfe deployment in both namespaces. Again, you might wish to change the `lab3frontend`s to `lab4frontend`s or simply `frontend`s.
 
-<details><summary>show command</summary>
-<p>
-
 ```bash
 kubectl apply -n production -f lab4frontend.yaml
 kubectl apply -n development -f lab4frontend.yaml
 ```
-
-</p>
-</details>
-<br/>
 
 6. Get the new pods' details from the development and production namespaces. Ask for `wide` output so you can see their IP addresses.
 
