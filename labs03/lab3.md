@@ -435,11 +435,6 @@ kubectl get service --all-namespaces | grep lab3
 
 ![lab2-dev4](../diagrams/lab2-dev4.png)
 
-
-
-
-
-
 30. Tidy up. Delete all three deployments and the three services.
 
 ```bash
