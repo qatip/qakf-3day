@@ -313,48 +313,28 @@ spec:
             configMapKeyRef:
               name: settings
               key: colour
-              
+```
 
 22. Create a sfe deployment in both the production and development namespaces. You did this in the second lab.
-
-<details><summary>show commands</summary>
-<p>
 
 ```bash
 kubectl apply -f lab3frontend.yaml --namespace development
 kubectl apply -f lab3frontend.yaml -n production
 ```
 
-</p>
-</details>
-<br/>
-
 23. Create a NodePort service exposing the deployment in both namespaces. Remember that the application is running on port 8080.
-
-<details><summary>show command</summary>
-<p>
 
 ```bash
 kubectl expose deployment lab3frontend --port 8080 --type NodePort --namespace production 
 kubectl expose deployment lab3frontend --port 8080 --type NodePort -n development
 ```
 
-</p>
-</details>
-<br/>
-
 24. Obtain the nodeport of both services and then browse to them.
-
-<details><summary>show command</summary>
-<p>
 
 ```bash
 kubectl get service lab3frontend --all-namespaces
 ```
 
-</p>
-</details>
-<br/>
 
 <details><summary>Stretch goal - optional exercise</summary>
 <p>
