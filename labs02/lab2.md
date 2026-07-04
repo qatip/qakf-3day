@@ -123,7 +123,7 @@ Example output:
 ```
 NAME          READY   STATUS    RESTARTS   AGE    LABELS 
 hello-45f6t   1/1     Running   0          39s    app=hello 
-hello-5s5pd   1/1     Running   0          104s   app=quarantined 
+hello-5s5pd   1/1     Running   0          104s   app=hello1 
 hello-qbqsm   1/1     Running   0          104s   app=hello 
 hello-s6k9l   1/1     Running   0          104s   app=hello 
 ```
@@ -162,7 +162,7 @@ hello-5s5pd   1/1     Running   0          207s
 
 The re-labelled pod is no longer controller by the replicaset, so when you deleted the ReplicaSet, the modified pod remained.
 
-8. Delete the qurantined pod. 
+8. Delete the orphaned pod. 
 
 <details><summary>show command</summary>
 <p>
@@ -183,14 +183,14 @@ kubectl delete pod hello-5s5pd
 <p>
 
 ```bash
-kubectl create deploy lab02 --image=httpd --replicas=3 --dry-run=client -o yaml > lab2dep.yaml
+kubectl create deploy lab02first --image=httpd --replicas=3 --dry-run=client -o yaml > lab02-first-dep.yaml
 ```
 
 </p>
 </details>
 <br/>
 
-10. Edit the YAMLfest so that the pod template (and only the pod template) adds a label named "owner" with a value of *your name*.
+10. Edit the YAMLfest so that the pod template adds a label named "owner" with a value of *your name*.
 
 
 <details><summary>show YAML</summary>
@@ -213,9 +213,7 @@ spec:
     metadata:
       labels:
         app: lab2
-#------ Add this line here ------
-        owner: glorfindel
-#--------------------------------
+        owner: michaelcg  #<<<<<<<<<<<< ADD THIS LINE
     spec:
       containers:
       - image: httpd
@@ -232,14 +230,14 @@ spec:
 <p>
 
 ```bash
-kubectl create deploy lab02second --image=nginx --replicas=3 --dry-run=client -o yaml > lab2dep2.yaml
+kubectl create deploy lab02second --image=nginx --replicas=3 --dry-run=client -o yaml > lab02-second-dep.yaml
 ```
 
 </p>
 </details>
 <br/>
 
-12. And once more give the *pod template only* an owner label with a value of *your name*.
+12. And once more, edit the yaml and give the pod template an owner label with a value of *your name*.
 
 <details><summary>show YAML</summary>
 <p>
@@ -261,9 +259,7 @@ spec:
     metadata:
       labels:
         app: hello
-#------ Add this line here ------
-        owner: glorfindel
-#--------------------------------
+        owner: michaelcg #<<<<<<<<<<<< ADD THIS LINE
     spec:
       containers:
       - image: public.ecr.aws/qa-wfl/qa-wfl/qakf/sbe:v2
@@ -279,8 +275,8 @@ spec:
 <p>
 
 ```bash
-kubectl create -f lab2dep.yaml
-kubectl create -f lab2dep2.yaml
+kubectl create -f lab02-first-dep.yaml
+kubectl create -f lab02-second-dep.yaml
 ```
 
 </p>
@@ -293,9 +289,9 @@ kubectl create -f lab2dep2.yaml
 <p>
 
 ```bash
-kubectl get pods --selector=owner=glorfindel
+kubectl get pods --selector=owner=michaelcg
 # or
-kubectl get pods -l owner=glorfindel
+kubectl get pods -l owner=michaelcg
 ```
 
 </p>
@@ -303,6 +299,7 @@ kubectl get pods -l owner=glorfindel
 <br/>
 
 15. Delete both deployments.
+
 
 ## 2.2 - Updating and rolling back deployments
 
