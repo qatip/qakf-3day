@@ -275,7 +275,15 @@ Example output:
 
 ### Task 3 - modify the simple frontend deployment to use configmaps in environment variables
 
-We now shift focus from a simple web app, used to demonstrate ConfigMaps, to our main frontend/backend application stack. 
+We now shift focus from a simple web app, used to demonstrate ConfigMaps, back to our main frontend/backend application stack.
+
+Let's clean-up first:
+
+```
+kubectl delete deployment lab3web
+kubectl delete svc lab3web  
+```
+
 
 The simple frontend application has a placeholder for a `COLOUR` environment variable. We're going to add different values for that in our different namespaces using ConfigMaps.
 
@@ -288,7 +296,7 @@ kubectl create configmap settings --from-literal=colour=purple --namespace devel
 kubectl create configmap settings --from-literal=colour=green --namespace production
 ```
 
-21. Create a copy of the frontend deployment created in lab2, renamed to lab3frontend.yaml and with updated 'lab3' labels:
+21. Create a copy of the frontend deployment manifest created in lab2, renamed to lab3frontend.yaml and with updated 'lab3' labels:
 
 ```
 cp ./qakf-3day/solutions/lab2/lab2frontend_stretch.yaml lab3frontend.yaml && \
