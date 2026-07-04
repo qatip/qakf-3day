@@ -332,18 +332,18 @@ kubectl expose deployment lab3frontend --port 8080 --type NodePort -n developmen
 24. Obtain the nodeport of both services and then browse to them.
 
 ```bash
-kubectl get service lab3frontend --all-namespaces
+kubectl get service --all-namespaces | grep lab3frontend
 ```
 
+25. Test each deployment by using your local browser to browse to http:{your controller public-ip}:{port 3xxxx}
 
-<details><summary>Stretch goal - optional exercise</summary>
-<p>
+![lab2-prod3](../diagrams/lab2-prod3.png)
 
-25. **OPTIONAL Stretch goal** also create the configmap in the test namespace and create and expose the frontend deployment therein.
+![lab2-dev3](../diagrams/lab2-dev3.png)
 
-</p>
-</details>
-<br/>
+
+
+
 
 ## 1.3 Secrets
 
