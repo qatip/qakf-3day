@@ -486,13 +486,17 @@ I am the backend service. I'm version 2.
 
 28. Find out your kubernetes controllers' PUBLIC IP address and point your local web browser at the NodePort's port number at that address, http//{publicip}:31115 for example.
 
+If running K8S on AWS EC2:
+
+``` bash
+curl ifconfig.io
+```
+
+on other platforms, try:
+
 ```bash
 hostname -i
 ```
-***Note*** If running K8S on AWS EC2 instances, then the above command will return the PRIVATE IP address of your Controller VM. We need the PUBLIC IP address. Switch to the AWS Console and retrieve this, noting it for later use.
-
-![public-ip](../diagrams/public-ip.png)
-
 ![browse-to-dep](../diagrams/browse-to-dep.png)
 
 29. Finally, delete the service and the deployment:

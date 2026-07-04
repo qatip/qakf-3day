@@ -14,7 +14,7 @@ spec:
     metadata:
       labels:
         app: lab02second
-        owner: glorfindel
+        owner: {your name here} # <<<<<<<<< UPDATE
     spec:
       containers:
       - image: nginx

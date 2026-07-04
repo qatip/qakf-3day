@@ -28,23 +28,15 @@ spec:
         image: public.ecr.aws/qa-wfl/qa-wfl/qakf/sbe:v1
 ```
 
-Run:
 ```bash
 kubectl create -f rs.yaml
 ```
 
 2. Get a list of all the pods
 
-<details><summary>show command</summary>
-<p>
-
 ```bash
 kubectl get pods
 ```
-
-</p>
-</details>
-<br/>
 
 Example output: 
 ```
@@ -71,22 +63,15 @@ The default editor is vim, but that’s OK, we’re not doing much with it!
 
 Use the cursor keys to line up on the `app: hello` label near the top of the file. 
 
-4. Press the `<i>` key to enter **INSERT** mode and change the value from “hello” to … well, whatever you like. I went with “quarantined” but just putting the number 1 immediately after the “o” will do it. 
+4. Press the `<i>` key to enter **INSERT** mode and change the value from “hello” to “hello1”. 
 
 5. Hit `<esc>` to go back to command mode, type a colon (“:”) and then type “x” (for eXit and save) and hit `<enter>`.
 
 6. List your pods and ReplicaSets again.
 
-<details><summary>show command</summary>
-<p>
-
 ```bash
 kubectl get pod,rs
 ```
-
-</p>
-</details>
-<br/>
 
 Example output: 
 ```
@@ -101,16 +86,9 @@ You should now have 4! All named hello-something. The ReplicaSet controller noti
 
 7. List pods again, but this time ask kubernetes to show you their labels: 
 
-<details><summary>show command</summary>
-<p>
-
 ```bash
 kubectl get pods --show-labels 
 ```
-
-</p>
-</details>
-<br/>
 
 Example output: 
 ```
@@ -123,29 +101,15 @@ hello-s6k9l   1/1     Running   0          104s   app=hello
 
 8. Delete the replicaset
 
-<details><summary>show command</summary>
-<p>
-
 ```bash
 kubectl delete rs hello
 ```
 
-</p>
-</details>
-<br/>
-
 9. And get the pods again (your output might be different, depending on quickly you type!)
-
-<details><summary>show command</summary>
-<p>
 
 ```bash
 kubectl get pods
 ```
-
-</p>
-</details>
-<br/>
 
 Example output: 
 ```
@@ -153,35 +117,21 @@ NAME          READY   STATUS    RESTARTS   AGE
 hello-5s5pd   1/1     Running   0          207s
 ```
 
-The re-labelled pod is no longer controller by the replicaset, so when you deleted the ReplicaSet, the modified pod remained.
+The re-labelled pod is no longer controlled by the replicaset, so when you deleted the ReplicaSet, the modified pod remained.
 
 8. Delete the orphaned pod. 
-
-<details><summary>show command</summary>
-<p>
 
 ```bash
 kubectl delete pod hello-5s5pd
 ```
 
-</p>
-</details>
-<br/>
-
 ### Task 2 - Add custom labels
 
-9. Create a YAMLfest for a deployment using the httpd image (or actually, any image; it doesn't matter). Or create a copy of the deployment manifest from the previous lab.
-
-<details><summary>show command</summary>
-<p>
+9. Create a YAMLfest for a deployment that will use the httpd image.
 
 ```bash
 kubectl create deploy lab02first --image=httpd --replicas=3 --dry-run=client -o yaml > lab02-first-dep.yaml
 ```
-
-</p>
-</details>
-<br/>
 
 10. Edit the YAMLfest so that the pod template adds a label named "owner" with a value of *your name*.
 
@@ -217,23 +167,13 @@ spec:
 </details>
 <br/>
 
-11. Create another deployment with a different name and using a different image. `nginx` will do.
-
-<details><summary>show command</summary>
-<p>
+11. Create another deployment with a different name, this time using an nginx image.
 
 ```bash
 kubectl create deploy lab02second --image=nginx --replicas=3 --dry-run=client -o yaml > lab02-second-dep.yaml
 ```
 
-</p>
-</details>
-<br/>
-
-12. And once more, edit the yaml and give the pod template an owner label with a value of *your name*.
-
-<details><summary>show YAML</summary>
-<p>
+12. And once more, edit the yaml and give the pod template an owner label with a value of *your name*. (Ensure you enter the same name)
 
 lab2dep2.yml:
 ```yaml
@@ -258,28 +198,15 @@ spec:
       - image: public.ecr.aws/qa-wfl/qa-wfl/qakf/sbe:v2
         name: sbe
 ```
-</p>
-</details>
-<br/>
 
 13. Create both deployments.
-
-<details><summary>show command</summary>
-<p>
 
 ```bash
 kubectl create -f lab02-first-dep.yaml
 kubectl create -f lab02-second-dep.yaml
 ```
 
-</p>
-</details>
-<br/>
-
 14. Now list all of the pods using either the `--selector` switch or the shorthand `-l` switch to find all the pods that you own.
-
-<details><summary>show command</summary>
-<p>
 
 ```bash
 kubectl get pods --selector=owner=michaelcg
@@ -287,11 +214,12 @@ kubectl get pods --selector=owner=michaelcg
 kubectl get pods -l owner=michaelcg
 ```
 
-</p>
-</details>
-<br/>
-
 15. Delete both deployments.
+
+```bash
+kubectl delete -f lab02-first-dep.yaml
+kubectl delete -f lab02-second-dep.yaml
+```
 
 
 ## 2.2 - Updating and rolling back deployments
@@ -451,48 +379,35 @@ spec:
             fieldRef:
               fieldPath: metadata.namespace
 # -----------------------------
+        resources: {}
+status: {}
 ```
 
 25. Apply the manifest in both namespaces.
-
-<details><summary>show command</summary>
-<p>
 
 ```bash
 kubectl apply -f lab2frontend.yaml --namespace development
 kubectl apply -f lab2frontend.yaml -n production
 ```
+Verify pod creation in the namespaces:
 
-</p>
-</details>
-<br/>
+```bash
+kubectl get pods --namespace development
+kubectl get pods -n production
+```
 
 26. Create a NodePort service exposing the deployment in both namespaces. The application is running on port 8080.
-
-<details><summary>show command</summary>
-<p>
 
 ```bash
 kubectl expose deployment lab2frontend --port 8080 --type NodePort --namespace production 
 kubectl expose deployment lab2frontend --port 8080 --type NodePort -n development
 ```
 
-</p>
-</details>
-<br/>
-
 27. Obtain the nodeport of both services and then browse to them.
-
-<details><summary>show command</summary>
-<p>
 
 ```bash
 kubectl get service --all-namespaces
 ```
-
-</p>
-</details>
-<br/>
 
 In order to browse to them, you'll need your controller's IP address followed by the `:3xxxx` of your service's nodeport (at the far right of the output).
 

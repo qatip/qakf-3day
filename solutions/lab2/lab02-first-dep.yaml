@@ -2,18 +2,19 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    app: lab2
-  name: lab2
+    app: lab02first
+  name: lab02first
 spec:
   replicas: 3
   selector:
     matchLabels:
-      app: lab2
+      app: lab02first
+  strategy: {}
   template:
     metadata:
       labels:
-        app: lab2
-        owner: glorfindel
+        app: lab02first
+        owner: {your name here} # <<<<<<<<< UPDATE
     spec:
       containers:
       - image: httpd
