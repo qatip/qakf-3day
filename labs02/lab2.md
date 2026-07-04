@@ -29,7 +29,6 @@ spec:
 ```
 
 Run:
-
 ```bash
 kubectl create -f rs.yaml
 ```
