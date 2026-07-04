@@ -30,7 +30,7 @@ test  1/1    Running  0          22m     192.168.230.21   k8s-worker-1
 3. Try to put some data into the store. It will fail.
 
 ```bash
- curl 192.168.230.21:8080/save -d 'name=Nefertiti'
+ curl {pod-ip}.21:8080/save -d 'name=Nefertiti'
 ```
 
 Example output:
@@ -43,18 +43,11 @@ Failed to create file /data/name due to --- open /data/name: no such file or dir
 
 4. We need to ensure that the `/data` directory exists. Start by deleting the existing pod.
 
-<details><summary>show command</summary>
-<p>
-
 ```bash
 kubectl delete pod kvstore
 ```
 
-</p>
-</details>
-<br/>
-
-5. Modify the pod specification in the YAMLfest so that it adds a `volume` named `data-volume` of the `emptyDir` type and adds a `volumeMount` to the container definition that mounts `data-volume` at `/data`
+5. Modify the auto-created manifest file lab3kv.yaml. Add a `volume` named `data-volume` of the `emptyDir` type and add a `volumeMount` to the container definition that mounts `data-volume` at `/data`
 
 lab3kv.yaml:
 
@@ -100,7 +93,7 @@ test  1/1    Running  0          22m     192.168.230.22   k8s-worker-1
 7. Retry adding data to the store. Make sure you're curling your pod's IP address.
 
 ```bash
- curl 192.168.230.22:8080/save -d 'name=Nefertiti'
+ curl {pod-ip}:8080/save -d 'name=Nefertiti'
 ```
 
 Example output:
@@ -114,7 +107,7 @@ Saved value Nefertiti to /data/name
 8. Feel free to add more key/value pairs and then try reading the data.
 
 ```bash
- curl 192.168.230.22:8080/read/name
+ curl {pod-ip}:8080/read/name
 ```
 
 Example output:
@@ -134,7 +127,7 @@ kubectl delete pod kvstore
 
 ### Task 2 - create a ConfigMap from an index.html file
 
-10. Create a deployment YAMLfest named `lab3web`, using the `httpd` image with 3 replicas, in a file named `lab3web.yaml`
+10. Create a deployment named ***lab3web***', using the ***httpd*** image with 3 replicas, in a manifest file named ***lab3web.yaml***
 
 ```bash
 kubectl create deployment lab3web --image=httpd --replicas=3 --dry-run=client -o yaml > lab3web.yaml
@@ -150,7 +143,7 @@ kubectl apply -f lab3web.yaml && kubectl expose deployment lab3web --port=80
 
 ```bash
 kubectl get service lab3web
-curl ip-from-previous-command
+curl {service cluster-ip}
 ```
 
 Example output:
@@ -174,16 +167,12 @@ Example output:
 
 14. Now create a file named `index.html` in your home directory. Its contents should be similar to the following, but feel free to customise the "welcome" message to suit yourself:
 
-```html
-<html><body><h1>Welcome to my home page, provided by a Configmap!</h1></body></html>'
-```
-Command:
 
 ```bash
-echo '<html><body><h1>Welcome to my home page!</h1></body></html>' > ~/index.html
+echo '<html><body><h1>Welcome to my home page</h1></body></html>' > ~/index.html
 ```
 
-15. Delete the deployment (but not the service).
+15. Delete the existing deployment (but not the service).
 
 ```bash
 kubectl delete deployment lab3web
@@ -201,7 +190,7 @@ kubectl create configmap homepage --from-file ~/index.html
 cp lab3web.yaml lab3web2.yaml
 ```
 
-18. In lab3web2.yaml, add a configMap volume, using the newly-created homepage configmap. Add a volumeMount to the container with a mountPath of /usr/local/apache2/htdocs. [NOTE: We could add additional files to the configmap and they'd be mounted in the same directory]
+18. In ***lab3web2.yaml***, add a configMap volume, using the newly-created homepage configmap. Add a volumeMount to the container with a mountPath of /usr/local/apache2/htdocs. [NOTE: We could add additional files to the configmap and they'd be mounted in the same directory]
 
 ```
     spec:
@@ -230,16 +219,14 @@ kubectl get svc lab3web
 19. And **cURL** your lab3web service IP address again.
 
 ```bash
- curl {your svc ip}
+curl {service cluster-ip}
 ```
 
 Example output:
 
 ```bash
-<html><body><h1>Welcome to my home page, provided by a Configmap!</h1></body></html>
+<html><body><h1>Welcome to my home page!</h1></body></html>
 ```
-
-<br/>
 
 ### Task 3 - modify the simple frontend deployment to use configmaps in environment variables
 
@@ -272,7 +259,7 @@ cp ./qakf-3day/solutions/lab2/lab2frontend_stretch.yaml lab3frontend.yaml && \
 sed -i 's/lab2/lab3/g' lab3frontend.yaml
 ```
 
-21. Edit the newly created lab3frontend.yaml file to add another `env` setting named `COLOUR` that gets its value from a `configMapKeyRef` with a `name` of `settings` and a `key` of `colour`. 
+21. Edit the newly created lab3frontend.yaml file to add another `env` setting named `COLOUR` that gets its value from the `configMapKeyRef` we just created and wiyh a `key` of `colour`. 
 
 ```yaml
 apiVersion: apps/v1
@@ -318,14 +305,14 @@ spec:
 22. Create a sfe deployment in both the production and development namespaces. You did this in the second lab.
 
 ```bash
-kubectl apply -f lab3frontend.yaml --namespace development
+kubectl apply -f lab3frontend.yaml -n development
 kubectl apply -f lab3frontend.yaml -n production
 ```
 
 23. Create a NodePort service exposing the deployment in both namespaces. Remember that the application is running on port 8080.
 
 ```bash
-kubectl expose deployment lab3frontend --port 8080 --type NodePort --namespace production 
+kubectl expose deployment lab3frontend --port 8080 --type NodePort -n production 
 kubectl expose deployment lab3frontend --port 8080 --type NodePort -n development
 ```
 
@@ -341,7 +328,7 @@ kubectl get service --all-namespaces | grep lab3frontend
 
 ![lab2-dev3](../diagrams/lab2-dev3.png)
 
-Donr close these browser tabs as we will return and refresh later when we include a secret for each namespace.
+Don't close these browser tabs as we will return and refresh later when we include a secret for each namespace.
 
 ## 1.3 Secrets
 
@@ -349,18 +336,10 @@ Donr close these browser tabs as we will return and refresh later when we includ
 
 26. Create a `secret` called `secrets` from a literal value with a key of `password` in the dev and prod namespaces, with different values for each password.
 
-<details><summary>show command</summary>
-<p>
-
 ```bash
 kubectl create secret generic secrets --from-literal password=DevSecret --namespace development
 kubectl create secret generic secrets --from-literal password=ProdSecret --namespace production
 ```
-
-</p>
-</details>
-<br/>
-
 
 21. Copy the frontend deployment manifest lab3frontend.yaml as lab3frontend2.yaml:
 
@@ -408,7 +387,7 @@ spec:
             configMapKeyRef:
               name: settings
               key: colour
-# ------ Add these lines ------
+# ------ Add the lines below ------
         volumeMounts:
         - name: secret-volume
           mountPath: /data
