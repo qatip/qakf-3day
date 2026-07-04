@@ -112,7 +112,7 @@ kubectl apply -n development -f lab4frontend.yaml
 </details>
 <br/>
 
-6. Get the new pods' details either from the dev or the prod namespaces. It doesn't matter which. Ask for `wide` output so you can see their IP addresses.
+6. Get the new pods' details from the development and production namespaces. Ask for `wide` output so you can see their IP addresses.
 
 ```bash
 kubectl -n production get pods --output wide | grep frontend
