@@ -191,8 +191,11 @@ echo '<html><body><h1>Welcome to my home page!</h1></body></html>' > ~/index.htm
 
 15. Delete the deployment (but not the service).
 
-16. Create a ConfigMap from the `index.html` file.
+```bash
+kubectl delete deployment lab3web
+```
 
+16. Create a ConfigMap from the `index.html` file.
 
 ```bash
 kubectl create configmap homepage --from-file ~/index.html
