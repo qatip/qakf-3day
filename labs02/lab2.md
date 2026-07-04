@@ -28,6 +28,7 @@ spec:
         image: public.ecr.aws/qa-wfl/qa-wfl/qakf/sbe:v1
 ```
 
+Run:
 
 ```bash
 kubectl create -f rs.yaml
