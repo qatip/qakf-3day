@@ -18,11 +18,6 @@ spec:
       - image: public.ecr.aws/qa-wfl/qa-wfl/qakf/sfe:v1
         name: sfe
         env:
-        - name: COLOUR
-          valueFrom:
-            configMapKeyRef:
-              name: settings
-              key: colour        
         - name: NAMESPACE
           valueFrom:
             fieldRef:
@@ -35,6 +30,11 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: metadata.name
+        - name: COLOUR
+          valueFrom:
+            configMapKeyRef:
+              name: settings
+              key: colour
         volumeMounts:
         - name: secret-volume
           mountPath: /data
@@ -42,3 +42,4 @@ spec:
       - name: secret-volume
         secret:
           secretName: secrets
+          

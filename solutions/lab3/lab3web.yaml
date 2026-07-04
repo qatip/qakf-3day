@@ -1,6 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
+  creationTimestamp: null
   labels:
     app: lab3web
   name: lab3web
@@ -9,11 +10,15 @@ spec:
   selector:
     matchLabels:
       app: lab3web
+  strategy: {}
   template:
     metadata:
+      creationTimestamp: null
       labels:
         app: lab3web
     spec:
       containers:
       - image: httpd
         name: httpd
+        resources: {}
+status: {}
