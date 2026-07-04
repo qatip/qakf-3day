@@ -424,6 +424,11 @@ And use your local browser:
 
 ```http://output-from-curl-command:3xxxx```
 
+![lab2-prod](../diagrams/lab2-prod.png)
+
+![lab2-dev](../diagrams/lab2-dev.png)
+
+
 
 <details><summary>Stretch goals - optional exercises</summary>
 <p>
