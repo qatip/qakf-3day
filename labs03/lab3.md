@@ -175,7 +175,7 @@ Example output:
 14. Now create a file named `index.html` in your home directory. Its contents should be similar to the following, but feel free to customise the "welcome" message to suit yourself:
 
 ```html
-<html><body><h1>Welcome to my home page!</h1></body></html>'
+<html><body><h1>Welcome to my home page, provided by a Configmap!</h1></body></html>'
 ```
 Command:
 
@@ -201,25 +201,42 @@ kubectl create configmap homepage --from-file ~/index.html
 cp lab3web.yaml lab3web2.yaml
 ```
 
-18. In lab3web.yaml, add a configMap volume, using the newly-created homepage configmap. Add a volumeMount to the container with a mountPath of /usr/local/apache2/htdocs. [NOTE: We could add additional files to the configmap and they'd be mounted in the same directory]
+18. In lab3web2.yaml, add a configMap volume, using the newly-created homepage configmap. Add a volumeMount to the container with a mountPath of /usr/local/apache2/htdocs. [NOTE: We could add additional files to the configmap and they'd be mounted in the same directory]
+
+```
+    spec:
+      containers:
+      - image: httpd
+        name: httpd
+#--------- Add these lines ------------
+        volumeMounts:
+        - name: homepage
+          mountPath: /usr/local/apache2/htdocs
+      volumes:
+      - name: homepage
+        configMap:
+          name: homepage
+#--------- Delete all lines below --------
+```
 
 18. Delete and then recreate the `lab3web` deployment.
 
 ```bash
 kubectl delete deployment lab3web
 kubectl create -f lab3web2.yaml
+kubectl get svc lab3web
 ```
 
 19. And **cURL** your lab3web service IP address again.
 
 ```bash
- curl 10.101.251.165
+ curl {your svc ip}
 ```
 
 Example output:
 
 ```bash
-<html><body><h1>Welcome to my home page ConfigMap!</h1></body></html>
+<html><body><h1>Welcome to my home page, provided by a Configmap!</h1></body></html>
 ```
 
 <br/>
@@ -232,13 +249,14 @@ Let's clean-up first:
 
 ```
 kubectl delete deployment lab3web
-kubectl delete svc lab3web  
+kubectl delete svc lab3web
+kubectl delete configmaps homepage  
 ```
 
 
 The simple frontend application has a placeholder for a `COLOUR` environment variable. We're going to add different values for that in our different namespaces using ConfigMaps.
 
-20. Create a ConfigMap in both the development and production namespaces (reating if necessary). Name the configmap `settings` and create a `colour` setting from a literal value with different values in each namespace. We will use Purple for Development and Green for Production.
+20. Create a ConfigMap in both the development and production namespaces (creating if necessary). Name the configmap `settings` and create a `colour` setting from a literal value with different values in each namespace. We will use Purple for Development and Green for Production.
 
 ```bash
 kubectl create namespace development || true
@@ -255,9 +273,6 @@ sed -i 's/lab2/lab3/g' lab3frontend.yaml
 ```
 
 21. Edit the newly created lab3frontend.yaml file to add another `env` setting named `COLOUR` that gets its value from a `configMapKeyRef` with a `name` of `settings` and a `key` of `colour`. 
-
-<details><summary>show YAML</summary>
-<p>
 
 ```yaml
 apiVersion: apps/v1
@@ -280,21 +295,29 @@ spec:
       - image: public.ecr.aws/qa-wfl/qa-wfl/qakf/sfe:v1
         name: sfe
         env:
+        - name: NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
 # ------ Add these lines ------        
         - name: COLOUR
           valueFrom:
             configMapKeyRef:
               name: settings
               key: colour
-# -----------------------------  
         - name: NAMESPACE
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace
 ```
-</p>
-</details>
-<br/>
 
 22. Create a sfe deployment in both the production and development namespaces. You did this in the second lab.
 

@@ -22,6 +22,6 @@ spec:
           mountPath: /usr/local/apache2/htdocs
       volumes:
       - name: homepage
-        configMap:
-          name: homepage
+      configMap:
+         name: homepage
           
