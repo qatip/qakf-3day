@@ -122,8 +122,10 @@ kubectl -n development get pods --output wide | grep frontend
 Example output (modified):
 
 ```
-NAME                          READY   STATUS    RESTARTS   AGE   IP               NODE
-frontend-5b6dcf74cb-kvvvn     1/1     Running   0          14m   192.168.29.154   k8s-worker-0   lab4backend-676f7c57f-26cjm   1/1     Running   0          78m   192.168.230.25   k8s-worker-1   nettools                      1/1     Running   0          7m    192.168.230.30   k8s-worker-1
+student@k8s-controller-0:~$ kubectl -n production get pods --output wide | grep frontend
+lab4frontend-f47f6cf46-55xk6   1/1     Running   0          3h49m   10.0.0.212   k8s-worker-0   <none>           <none>
+student@k8s-controller-0:~$ kubectl -n development get pods --output wide | grep frontend
+lab4frontend-f47f6cf46-xfr92   1/1     Running   0          3h49m   10.0.1.147   k8s-worker-1   <none>           <none>
 ```
 
 7. Curl {ip}:8080, using one of the frontend pods' IP addresses. You should see a v2 message in the development namespace and a v1 message in production.
