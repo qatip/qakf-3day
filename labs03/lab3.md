@@ -126,53 +126,32 @@ Nefertiti
 9. Delete the pod.
 
 ```bash
-kubectl delete pod lab3web
+kubectl delete pod kvstore
 ```
 
 
 ## 1.2 ConfigMaps
 
-### Task 2 - create a ConfigMap from your index.html file
+### Task 2 - create a ConfigMap from an index.html file
 
 11. Create a deployment YAMLfest named `lab3web`, using the `httpd` image with 3 replicas, in a file named `lab3web.yaml`
-
-<details><summary>show command</summary>
-<p>
 
 ```bash
 kubectl create deployment lab3web --image=httpd --replicas=3 --dry-run=client -o yaml > lab3web.yaml
 ```
 
-</p>
-</details>
-<br/>
-
 12. `Apply` the YAMLfest and `expose` it as a service on port 80.
-
-<details><summary>show command</summary>
-<p>
 
 ```bash
 kubectl apply -f lab3web.yaml && kubectl expose deployment lab3web --port=80
 ```
 
-</p>
-</details>
-<br/>
-
 13. Find out the `ClusterIP` of the new service and **cURL** it.
-
-<details><summary>show command</summary>
-<p>
 
 ```bash
 kubectl get service lab3web
 curl ip-from-previous-command
 ```
-
-</p>
-</details>
-<br/>
 
 Example output:
 
