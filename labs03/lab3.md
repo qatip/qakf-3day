@@ -288,14 +288,14 @@ kubectl create configmap settings --from-literal=colour=purple --namespace devel
 kubectl create configmap settings --from-literal=colour=green --namespace production
 ```
 
-21. Create a copy of the frontend deployment created in labs, renamed to lab3frontend.yaml:
+21. Create a copy of the frontend deployment created in lab2, renamed to lab3frontend.yaml and with updated 'lab3' labels:
 
 ```
 cp ./qakf-3day/solutions/lab2/lab2frontend_stretch.yaml lab3frontend.yaml && \
 sed -i 's/lab2/lab3/g' lab3frontend.yaml
 ```
 
-21. Edit lab3frontend.yaml file to add another `env` setting named `COLOUR` that gets its value from a `configMapKeyRef` with a `name` of `settings` and a `key` of `colour`. Maybe also find and replace all the `lab2frontend`s with `lab3frontend`s.
+21. Edit the newly created lab3frontend.yaml file to add another `env` setting named `COLOUR` that gets its value from a `configMapKeyRef` with a `name` of `settings` and a `key` of `colour`. 
 
 <details><summary>show YAML</summary>
 <p>
