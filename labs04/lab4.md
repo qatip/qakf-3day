@@ -9,8 +9,6 @@ kubectl create configmap settings --from-literal=colour=purple --namespace devel
 kubectl create configmap settings --from-literal=colour=green --namespace production || true
 kubectl create secret generic secrets --from-literal password=DevSecret --namespace development || true
 kubectl create secret generic secrets --from-literal password=ProdSecret --namespace production || true
-cp ./qakf-3day/solutions/lab3/lab3frontend2.yaml lab4frontend.yaml && \
-sed -i 's/lab3/lab4/g' lab4frontend.yaml
 ```
 
 
@@ -19,31 +17,17 @@ sed -i 's/lab3/lab4/g' lab4frontend.yaml
 
 1. Create a `public.ecr.aws/qa-wfl/qa-wfl/qakf/sbe` deployment in each of the `dev` and `prod` namespaces, using the `:v2` image in `dev` and the `:v1` image in `production`.
 
-<details><summary>show commands</summary>
-<p>
-
 ```bash
 kubectl create deploy lab4backend --image=public.ecr.aws/qa-wfl/qa-wfl/qakf/sbe:v1 -n production 
 kubectl create deploy lab4backend --image=public.ecr.aws/qa-wfl/qa-wfl/qakf/sbe:v2 -n development
 ```
 
-</p>
-</details>
-<br/>
-
 2. Expose them both as `clusterIP` services on `port` 80 with a `target-port` of 8080, giving them both a `name` of `backend`.
-
-<details><summary>show commands</summary>
-<p>
 
 ```bash
 kubectl expose deployment lab4backend --port 80 --target-port 8080 --name backend --namespace production 
 kubectl expose deployment lab4backend --port 80 --target-port 8080 --name backend -n development
 ```
-
-</p>
-</details>
-<br/>
 
 3. We're going to use the `busybox` image to interact with DNS using nslookups. Create a pod named `nettools` in both the `dev` and `prod` namespaces. Use the `busybox` image. You'll need it to run a `command` of `sleep infinity` or it will immediately transition to a `completed` state.
 
@@ -61,18 +45,10 @@ kubectl run nettools --image=busybox -n development --command sleep infinity
 
 4. Use `kubectl exec` to execute the command `nslookup backend` on the two pods in the two different namespaces.
 
-<details><summary>show commands</summary>
-<p>
-
 ```bash
 kubectl exec -it nettools -n production -- nslookup backend
 kubectl exec -it nettools -n development -- nslookup backend
 ```
-
-</p>
-</details>
-<br/>
-
 
 Example output:
 
@@ -86,10 +62,7 @@ Name:   backend.development.svc.cluster.local
 Address: 10.107.29.209
 
 ** server can't find backend.svc.cluster.local: NXDOMAIN
-
 ** server can't find backend.cluster.local: NXDOMAIN
-
-
 ** server can't find backend.svc.cluster.local: NXDOMAIN
 
 command terminated with exit code 1
@@ -98,9 +71,11 @@ command terminated with exit code 1
 
 Note that CoreDNS tried a lot of variations of the name `backend` but one of the first was for `backend.development.svc.clsuter.local` in this case. When run against the prod namespace, it'll look there. This is to illustrate that CoreDNS "knows" which namespace a pod is running in and returns the appropriate lookup.
 
-5. There's only one placeholder remaining in our simple front end application, for the data from the backing service. Let's finish that off now by `apply`ing (a copy of) the sfe deployment in both namespaces. Again, you might wish to change the `lab3frontend`s to `lab4frontend`s or simply `frontend`s.
+5. There's only one placeholder remaining in our simple front end application, for the data from the backing service. Let's finish that off now by applying a copy of the sfe deployment created in lab3 into both namespaces:
 
 ```bash
+cp ./qakf-3day/solutions/lab3/lab3frontend2.yaml lab4frontend.yaml && \
+sed -i 's/lab3/lab4/g' lab4frontend.yaml
 kubectl apply -n production -f lab4frontend.yaml
 kubectl apply -n development -f lab4frontend.yaml
 ```
@@ -123,12 +98,11 @@ lab4frontend-f47f6cf46-xfr92   1/1     Running   0          3h49m   10.0.1.147  
 
 7. ***curl {ip}:8080***, using each frontend pods' IP address in turn. You should see a v2 message in the development namespace and a v1 message in production.
 
-  Example output:
+Example output:
 
 ```
     <p>Call to backend service returned: <em>I am the backend service. I&#39;m version 1!
 ```
-
 
 8. **Optional but useful**: `exec` into one of your frontend pods and inspect the application code. See (around the 25th line) it's just asking for "http://backend"? That's basically what you did earlier with the nslookups. CoreDNS still knows which namespace your workload is running in. And the lack of a port number is why we had to have the service listening on port 80 but forwarding to 8080 (which the app is listening on).
 
@@ -138,12 +112,11 @@ kubectl exec -it <frontend -pod-name> -n production -- cat /code/app/main.py
 
 ![backend lookup](../diagrams/backend-lookup.png)
 
-
 ## 4.2 Install an ingress controller
 
 ![Lab 4.2 final result](../diagrams/lab_4_ingress.png)
 
-Because we've exposed the back- and front-end services as `clusterIP`s, we can't currently reach them from "outside" the cluster (the host machine). That's fine for the backend services, but the frontend needs to be reachable. If we were running in a cloud, we could expose the two frontends with two load balancer services, or use the cloud vendor's ingress controller. We'll use a couple of ingress rules behind a single Nginx ingress controller.
+We can't currently reach the front-end pods from "outside" of the cluster. This is not an issue for the backend services as they are used inside the cluster, but the frontend needs to be reachable from outside. Up to now we have used NodePorts to achieve this. If we were running in a cloud, we could expose the two frontends with two load balancer services, or use the cloud vendor's ingress controller. We'll use a couple of ingress rules behind a single Nginx ingress controller.
 
 9. Run the following command to install an Nginx Ingress Controller. A whole bunch of resources will be created. Helm is a package manager for Kubernetes, which we haven't covered yet, but we will, in the very next module.
 
