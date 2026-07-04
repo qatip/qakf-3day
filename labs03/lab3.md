@@ -239,83 +239,31 @@ echo '<html><body><h1>Welcome to my home page!</h1></body></html>' > ~/index.htm
 
 16. Create a ConfigMap from the `index.html` file.
 
-<details><summary>show command</summary>
-<p>
 
 ```bash
 kubectl create configmap homepage --from-file ~/index.html
 ```
 
-</p>
-</details>
-<br/>
+17. Copy lab3web.yaml to lab3web2.yaml
 
-17. Edit (a copy of) the lab3web.yaml file to add a `configMap` volume, using the newly-created `homepage` configmap. Add a `volumeMount` to the container with a `mountPath` of `/usr/local/apache2/htdocs`. [NOTE: We could add additional files to the configmap and they'd be mounted in the same directory]
-
-<details><summary>show YAML</summary>
-<p>
-
-```yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  labels:
-    app: lab3web
-  name: lab3web
-spec:
-  replicas: 3
-  selector:
-    matchLabels:
-      app: lab3web
-  template:
-    metadata:
-      labels:
-        app: lab3web
-    spec:
-      containers:
-      - image: httpd
-        name: httpd
-# ------ Add these lines ------
-        volumeMounts:
-        - name: homepage
-          mountPath: /usr/local/apache2/htdocs
-      volumes:
-      - name: homepage
-        configMap:
-          name: homepage
-# -----------------------------
+```
+cp lab3web.yaml lab3web.yaml
 ```
 
-</p>
-</details>
-<br/>
+18. In lab3web.yaml, add a configMap volume, using the newly-created homepage configmap. Add a volumeMount to the container with a mountPath of /usr/local/apache2/htdocs. [NOTE: We could add additional files to the configmap and they'd be mounted in the same directory]
 
 18. Delete and then recreate the `lab3web` deployment.
 
-<details><summary>show command</summary>
-<p>
-
 ```bash
 kubectl delete deployment lab3web
-kubectl create -f lab3webconfigmap.yaml # whatever your edited file is called
+kubectl create -f lab3web2.yaml
 ```
 
-</p>
-</details>
-<br/>
-
 19. And **cURL** your lab3web service IP address again.
-
-<details><summary>show command</summary>
-<p>
 
 ```bash
  curl 10.101.251.165
 ```
-
-</p>
-</details>
-<br/>
 
 Example output:
 
@@ -327,23 +275,27 @@ Example output:
 
 ### Task 3 - modify the simple frontend deployment to use configmaps in environment variables
 
-The simple frontend application also has a placeholder for a `COLOUR` environment variable. We're going to add different values for that in our different namespaces. 
+We now shift focus from a simple web app, used to demonstrate ConfigMaps, to our main frontend/backend application stack. 
 
-20. Create a ConfigMap in both the development and production namespaces. Name the configmap `settings` and create a `colour` setting from a literal value with different values in each namespace. Purple and green are good choices, but feel free to use other values.
+The simple frontend application has a placeholder for a `COLOUR` environment variable. We're going to add different values for that in our different namespaces using ConfigMaps.
 
-<details><summary>show command</summary>
-<p>
+20. Create a ConfigMap in both the development and production namespaces (reating if necessary). Name the configmap `settings` and create a `colour` setting from a literal value with different values in each namespace. We will use Purple for Development and Green for Production.
 
 ```bash
+kubectl create namespace development || true
+kubectl create namespace production || true
 kubectl create configmap settings --from-literal=colour=purple --namespace development
 kubectl create configmap settings --from-literal=colour=green --namespace production
 ```
 
-</p>
-</details>
-<br/>
+21. Create a copy of the frontend deployment created in labs, renamed to lab3frontend.yaml:
 
-21. Edit (a copy of) the lab2frontend.yaml file to add another `env` setting named `COLOUR` that gets its value from a `configMapKeyRef` with a `name` of `settings` and a `key` of `colour`. Maybe also find and replace all the `lab2frontend`s with `lab3frontend`s.
+```
+cp ./qakf-3day/solutions/lab2/lab2frontend_stretch.yaml lab3frontend.yaml && \
+sed -i 's/lab2/lab3/g' lab3frontend.yaml
+```
+
+21. Edit lab3frontend.yaml file to add another `env` setting named `COLOUR` that gets its value from a `configMapKeyRef` with a `name` of `settings` and a `key` of `colour`. Maybe also find and replace all the `lab2frontend`s with `lab3frontend`s.
 
 <details><summary>show YAML</summary>
 <p>
@@ -381,7 +333,6 @@ spec:
             fieldRef:
               fieldPath: metadata.namespace
 ```
-
 </p>
 </details>
 <br/>
