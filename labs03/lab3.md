@@ -177,17 +177,11 @@ Example output:
 ```html
 <html><body><h1>Welcome to my home page!</h1></body></html>'
 ```
-
-<details><summary>show command</summary>
-<p>
+Command:
 
 ```bash
 echo '<html><body><h1>Welcome to my home page!</h1></body></html>' > ~/index.html
 ```
-
-</p>
-</details>
-<br/>
 
 15. Delete the deployment (but not the service).
 
