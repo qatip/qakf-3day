@@ -123,7 +123,7 @@ lab4frontend-f47f6cf46-xfr92   1/1     Running   0          3h49m   10.0.1.147  
 
 7. ***curl {ip}:8080***, using each frontend pods' IP address in turn. You should see a v2 message in the development namespace and a v1 message in production.
 
-> Example output:
+  Example output:
 
 ```
     <p>Call to backend service returned: <em>I am the backend service. I&#39;m version 1!
