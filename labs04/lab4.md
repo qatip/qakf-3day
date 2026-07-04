@@ -17,10 +17,15 @@ kubectl create secret generic secrets --from-literal password=ProdSecret --names
 
 1. Create a `public.ecr.aws/qa-wfl/qa-wfl/qakf/sbe` deployment in each of the `dev` and `prod` namespaces, using the `:v2` image in `dev` and the `:v1` image in `production`.
 
+<details><summary>show command</summary>
+<p>
 ```bash
 kubectl create deploy lab4backend --image=public.ecr.aws/qa-wfl/qa-wfl/qakf/sbe:v1 -n production 
 kubectl create deploy lab4backend --image=public.ecr.aws/qa-wfl/qa-wfl/qakf/sbe:v2 -n development
 ```
+</p>
+</details>
+<br/>
 
 2. Expose them both as `clusterIP` services on `port` 80 with a `target-port` of 8080, giving them both a `name` of `backend`.
 
