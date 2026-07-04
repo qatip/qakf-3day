@@ -112,7 +112,7 @@ kubectl -n production get pods --output wide | grep frontend
 kubectl -n development get pods --output wide | grep frontend
 ```
 
-Example output (modified):
+Example output:
 
 ```
 student@k8s-controller-0:~$ kubectl -n production get pods --output wide | grep frontend
@@ -121,7 +121,14 @@ student@k8s-controller-0:~$ kubectl -n development get pods --output wide | grep
 lab4frontend-f47f6cf46-xfr92   1/1     Running   0          3h49m   10.0.1.147   k8s-worker-1   <none>           <none>
 ```
 
-7. Curl {ip}:8080, using each frontend pods' IP address in turn. You should see a v2 message in the development namespace and a v1 message in production.
+7. ***curl {ip}:8080***, using each frontend pods' IP address in turn. You should see a v2 message in the development namespace and a v1 message in production.
+
+Example output:
+
+```
+    <p>Call to backend service returned: <em>I am the backend service. I&#39;m version 1!
+```
+
 
 8. **Optional but useful**: `exec` into one of your frontend pods and inspect the application code. See (around the 25th line) it's just asking for "http://backend"? That's basically what you did earlier with the nslookups. CoreDNS still knows which namespace your workload is running in. And the lack of a port number is why we had to have the service listening on port 80 but forwarding to 8080 (which the app is listening on).
 
