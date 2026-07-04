@@ -1,6 +1,22 @@
 # Lab 4 - Networking
+
+## 4.0 Before you begin
+
+```bash
+kubectl create namespace development || true
+kubectl create namespace production || true
+kubectl create configmap settings --from-literal=colour=purple --namespace development || true
+kubectl create configmap settings --from-literal=colour=green --namespace production || true
+kubectl create secret generic secrets --from-literal password=DevSecret --namespace development || true
+kubectl create secret generic secrets --from-literal password=ProdSecret --namespace production || true
+cp ./qakf-3day/solutions/lab3/lab3frontend2.yaml lab4frontend.yaml && \
+sed -i 's/lab3/lab4/g' lab4frontend.yaml
+```
+
+
 ## 4.1 Explore CoreDNS
 ![Lab 4.1 final result](../diagrams/lab_4_coredns.png)
+
 1. Create a `public.ecr.aws/qa-wfl/qa-wfl/qakf/sbe` deployment in each of the `dev` and `prod` namespaces, using the `:v2` image in `dev` and the `:v1` image in `production`.
 
 <details><summary>show commands</summary>
