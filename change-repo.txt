@@ -1,0 +1,3 @@
+cd ~
+rm -rf qakf-labs
+git clone https://github.com/qatip/qakf-3day.git
