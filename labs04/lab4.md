@@ -19,10 +19,12 @@ kubectl create secret generic secrets --from-literal password=ProdSecret --names
 
 <details><summary>show command</summary>
 <p>
-```bash
+
+```
 kubectl create deploy lab4backend --image=public.ecr.aws/qa-wfl/qa-wfl/qakf/sbe:v1 -n production 
 kubectl create deploy lab4backend --image=public.ecr.aws/qa-wfl/qa-wfl/qakf/sbe:v2 -n development
 ```
+
 </p>
 </details>
 <br/>
