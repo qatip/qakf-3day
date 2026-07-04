@@ -3,7 +3,7 @@
 
 ### Task 1 - Confuse a ReplicaSet
 
-1. Create a replicaset. It doesn't matter what image you use, or what name you give it. Feel free to reuse the manifest from the previous lab, or use this one:
+1. Create a replicaset reusing the rs.yaml manifest from the previous lab:
 
 rs.yaml:
 ```yaml
@@ -28,17 +28,10 @@ spec:
         image: public.ecr.aws/qa-wfl/qa-wfl/qakf/sbe:v1
 ```
 
-<details><summary>show command</summary>
-<p>
 
 ```bash
 kubectl create -f rs.yaml
 ```
-
-</p>
-</details>
-<br/>
-
 
 2. Get a list of all the pods
 
