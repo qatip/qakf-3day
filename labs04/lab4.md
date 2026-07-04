@@ -114,16 +114,10 @@ kubectl apply -n development -f lab4frontend.yaml
 
 6. Get the new pods' details either from the dev or the prod namespaces. It doesn't matter which. Ask for `wide` output so you can see their IP addresses.
 
-<details><summary>show command</summary>
-<p>
-
 ```bash
 kubectl -n production get pods --output wide
+kubectl -n development get pods --output wide
 ```
-
-</p>
-</details>
-<br/>
 
 Example output (modified):
 
@@ -132,9 +126,8 @@ NAME                          READY   STATUS    RESTARTS   AGE   IP             
 frontend-5b6dcf74cb-kvvvn     1/1     Running   0          14m   192.168.29.154   k8s-worker-0   lab4backend-676f7c57f-26cjm   1/1     Running   0          78m   192.168.230.25   k8s-worker-1   nettools                      1/1     Running   0          7m    192.168.230.30   k8s-worker-1
 ```
 
-<br/>
+7. Curl {ip}:8080, using one of the frontend pods' IP addresses. You should see a v2 message in the development namespace and a v1 message in production.
 
-7. **cURL** one of the frontend pods' IP addresses. You should see a v2 message in the dev namespace and a v1 message in production.
 
 8. **Optional but useful**: `exec` into one of your frontend pods and inspect the application code. See (around the 25th line) it's just asking for "http://backend"? That's basically what you did earlier with the nslookups. CoreDNS still knows which namespace your workload is running in. And the lack of a port number is why we had to have the service listening on port 80 but forwarding to 8080 (which the app is listening on).
 
