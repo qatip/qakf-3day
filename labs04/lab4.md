@@ -71,7 +71,7 @@ command terminated with exit code 1
 
 Note that CoreDNS tried a lot of variations of the name `backend` but one of the first was for `backend.development.svc.clsuter.local` in this case. When run against the prod namespace, it'll look there. This is to illustrate that CoreDNS "knows" which namespace a pod is running in and returns the appropriate lookup.
 
-5. There's only one placeholder remaining in our simple front end application, for the data from the backing service. Let's finish that off now by applying a copy of the sfe deployment created in lab3 into both namespaces:
+5. There's only one placeholder remaining in our simple front end application, the data from the backing service. Let's finish that off now by applying a copy of the frontend deployment created in lab3 into both namespaces:
 
 ```bash
 cp ./qakf-3day/solutions/lab3/lab3frontend2.yaml lab4frontend.yaml && \
