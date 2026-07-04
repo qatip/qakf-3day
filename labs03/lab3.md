@@ -5,30 +5,16 @@
 
 1. Create a pod manifest using the `abhirockzz/kvstore` image use the `dry-run` and `-o yaml` technique to create a file called `lab3kv.yaml`. This is an image that runs a simple key/value store that uses the file system to store values.
 
-<details><summary>show command</summary>
-<p>
-
 ```bash
 kubectl run kvstore --image=abhirockzz/kvstore --dry-run=client -o yaml > lab3kv.yaml
 ```
 
-</p>
-</details>
-<br/>
-
 2. Apply the YAMLfest and then find the new pod's IP address.
-
-<details><summary>show command</summary>
-<p>
 
 ```bash
 kubectl apply -f lab3kv.yaml
 kubectl get pod -o wide
 ```
-
-</p>
-</details>
-<br/>
 
 Example output:
 
@@ -83,29 +69,22 @@ spec:
   containers:
   - image: abhirockzz/kvstore
     name: kvstore
-# ------ Add these lines ------
+# ------ Add these lines -----------
     volumeMounts:
     - mountPath: /data
       name: data-volume
   volumes:
   - name: data-volume
     emptyDir: {}
-# -----------------------------
+# ----- Delete all lines below ------
 ```
 
 6. Apply the YAMLfest again and find out the new pod's IP address.
-
-<details><summary>show command</summary>
-<p>
 
 ```bash
 kubectl apply -f lab3kv.yaml
 kubectl get pod -o wide
 ```
-
-</p>
-</details>
-<br/>
 
 Example output:
 
@@ -144,16 +123,12 @@ Example output:
 Nefertiti
 ```
 
-<details><summary>Stretch goal - optional exercise</summary>
-<p>
+9. Delete the pod.
 
-9. **OPTIONAL stretch goal** see if you can find the emptyDir in your hosts' file system. It will involve finding out which node the pod is running on, connecting to that node and working out where in the file system the emptyDir is (you might be able to `find` a file named `data-volume`). Once you have found it, you could look for the files therein. Also, if you do take on this chalenge, observe, once you've deleted the pod, that the directory is removed.
+```bash
+kubectl delete pod lab3web
+```
 
-</p>
-</details>
-<br/>
-
-10. Delete the pod.
 
 ## 1.2 ConfigMaps
 
