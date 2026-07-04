@@ -59,10 +59,16 @@ kubectl run nettools --image=busybox -n development --command sleep infinity
 
 4. Use `kubectl exec` to execute the command `nslookup backend` on the two pods in the two different namespaces.
 
-```bash
+<details><summary>show command</summary>
+<p>
+
+```
 kubectl exec -it nettools -n production -- nslookup backend
 kubectl exec -it nettools -n development -- nslookup backend
 ```
+</p>
+</details>
+<br/>
 
 Example output:
 
