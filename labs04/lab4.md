@@ -139,8 +139,6 @@ frontend-5b6dcf74cb-kvvvn     1/1     Running   0          14m   192.168.29.154 
 8. **Optional but useful**: `exec` into one of your frontend pods and inspect the application code. See (around the 25th line) it's just asking for "http://backend"? That's basically what you did earlier with the nslookups. CoreDNS still knows which namespace your workload is running in. And the lack of a port number is why we had to have the service listening on port 80 but forwarding to 8080 (which the app is listening on).
 
 ```bash
-kubectl exec -it <frontend -pod-name> -n development -- cat /code/app/main.py
-#or
 kubectl exec -it <frontend -pod-name> -n production -- cat /code/app/main.py
 ```
 
