@@ -378,9 +378,7 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace
-# -----------------------------
-        resources: {}
-status: {}
+# ------ Delete lines below -----
 ```
 
 25. Apply the manifest in both namespaces.
@@ -437,14 +435,12 @@ And use your local browser:
 
 29. **OPTIONAL Stretch goal 2** there are also placeholders for the pod name and the node name on the frontend image's homepage. See if you can get those values to display instead of *unknown*.  Adding the pod's name to the deployment's environment variables is very similar to how you added the namespace, but the node name might involve a bit of web searching. The image is expecting an environment variable named `POD_NAME` and another one named `NODE_NAME`.
 
-</p>
-</details>
-<br/>
+![lab2-prod1](../diagrams/lab2-prod1.png)
+
+![lab2-dev2](../diagrams/lab2-dev2.png)
+
 
 30. Tidy up. Delete all three deployments and the two services.
-
-<details><summary>show command</summary>
-<p>
 
 ```bash
 kubectl delete deployment lab2backend
@@ -453,9 +449,5 @@ kubectl delete deploy lab2frontend -n development
 kubectl delete service lab2frontend -n production
 kubectl delete service lab2frontend -n development
 ```
-
-</p>
-</details>
-<br/>
 
 31. That's it, you're done! Let your instructor know that you've finished the lab.
