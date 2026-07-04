@@ -144,6 +144,9 @@ kubectl exec -it <frontend -pod-name> -n development -- cat /code/app/main.py
 kubectl exec -it <frontend -pod-name> -n production -- cat /code/app/main.py
 ```
 
+![backend lookup](../diagrams/backend-lookup.png)
+
+
 ## 4.2 Install an ingress controller
 
 ![Lab 4.2 final result](../diagrams/lab_4_ingress.png)
