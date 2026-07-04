@@ -341,9 +341,7 @@ kubectl get service --all-namespaces | grep lab3frontend
 
 ![lab2-dev3](../diagrams/lab2-dev3.png)
 
-
-
-
+Donr close these browser tabs as we will return and refresh later when we include a secret for each namespace.
 
 ## 1.3 Secrets
 
@@ -355,18 +353,22 @@ kubectl get service --all-namespaces | grep lab3frontend
 <p>
 
 ```bash
-kubectl create secret generic secrets --from-literal password=MySecretPhrase --namespace development
-kubectl create secret generic secrets --from-literal password=ReallySecret --namespace production
+kubectl create secret generic secrets --from-literal password=DevSecret --namespace development
+kubectl create secret generic secrets --from-literal password=ProdSecret --namespace production
 ```
 
 </p>
 </details>
 <br/>
 
-27. Edit (a copy of) the lab3frontend.yaml file to add a `volume` to the deployment with a `name` of `secret-volume` and a `type` of `secret`, referencing your newly-created `secret`. Add a `volumeMount` to the container that mounts your secret at `/data`
 
-<details><summary>show YAML</summary>
-<p>
+21. Copy the frontend deployment manifest lab3frontend.yaml as lab3frontend2.yaml:
+
+```
+cp lab3frontend.yaml lab3frontend2.yaml
+```
+
+27. Edit the new lab3frontend2.yaml file, adding a `volume` to the deployment with a `name` of `secret-volume` and a `type` of `secret`, referencing your newly-created `secret`. Add a `volumeMount` to the container that mounts your secret at `/data`
 
 ```yaml
 apiVersion: apps/v1
@@ -389,11 +391,6 @@ spec:
       - image: public.ecr.aws/qa-wfl/qa-wfl/qakf/sfe:v1
         name: sfe
         env:
-        - name: COLOUR
-          valueFrom:
-            configMapKeyRef:
-              name: settings
-              key: colour        
         - name: NAMESPACE
           valueFrom:
             fieldRef:
@@ -406,6 +403,11 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: metadata.name
+        - name: COLOUR
+          valueFrom:
+            configMapKeyRef:
+              name: settings
+              key: colour
 # ------ Add these lines ------
         volumeMounts:
         - name: secret-volume
@@ -414,51 +416,37 @@ spec:
       - name: secret-volume
         secret:
           secretName: secrets
-# -----------------------------
 ```
 
-</p>
-</details>
-<br/>
-
-28. Obtain the nodeport of both services and then browse to them.
-
-<details><summary>show command</summary>
-<p>
+28. Apply these deployment changes:
 
 ```bash
-kubectl get service --all-namespaces
+kubectl apply -f lab3frontend2.yaml -n development
+kubectl apply -f lab3frontend2.yaml -n production
 ```
 
-</p>
-</details>
-<br/>
+29. Obtain the nodeport of both services and then browse to them (or refresh your existing connections).
 
-<details><summary>Stretch goal - optional exercise</summary>
-<p>
+```bash
+kubectl get service --all-namespaces | grep lab3
+```
 
-29. **Optional stretch goal** add the secret to the `test` namespace as well, then create and expose the frontend deployment therein.
+![lab2-prod4](../diagrams/lab2-prod4.png)
 
-</p>
-</details>
-<br/>
+![lab2-dev4](../diagrams/lab2-dev4.png)
+
+
+
+
+
 
 30. Tidy up. Delete all three deployments and the three services.
-
-<details><summary>show command</summary>
-<p>
 
 ```bash
 kubectl delete deploy lab3frontend -n production
 kubectl delete deploy lab3frontend -n development
 kubectl delete service lab3frontend -n production
 kubectl delete service lab3frontend -n development
-kubectl delete deploy lab3web
-kubectl delete service lab3web
 ```
-
-</p>
-</details>
-<br/>
 
 31. That's it, you're done! Let your instructor know that you've finished the lab.
