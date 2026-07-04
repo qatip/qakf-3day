@@ -409,11 +409,10 @@ kubectl expose deployment lab2frontend --port 8080 --type NodePort -n developmen
 kubectl get service --all-namespaces
 ```
 
-In order to browse to them, you'll need your controller's IP address followed by the `:3xxxx` of your service's nodeport (at the far right of the output).
+![lab2-nodeports](../diagrams/lab2-nodeports.png)
 
-If you're using our Goto My PC environment, that will be:
 
-```http://k8s-controller-0:3xxxx```
+In order to browse to them, you'll need your controller's PUBLIC IP address followed by the `:3xxxx` of your service's nodeport (at the far right of the output).
 
 If you're using a cloud environment, use the following command to obtain your Public IP address:
 
@@ -421,7 +420,7 @@ If you're using a cloud environment, use the following command to obtain your Pu
 curl ifconfig.io
 ```
 
-And browse to:
+And use your local browser:
 
 ```http://output-from-curl-command:3xxxx```
 
