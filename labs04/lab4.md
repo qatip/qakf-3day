@@ -31,10 +31,17 @@ kubectl create deploy lab4backend --image=public.ecr.aws/qa-wfl/qa-wfl/qakf/sbe:
 
 2. Expose them both as `clusterIP` services on `port` 80 with a `target-port` of 8080, giving them both a `name` of `backend`.
 
-```bash
+<details><summary>show command</summary>
+<p>
+
+```
 kubectl expose deployment lab4backend --port 80 --target-port 8080 --name backend --namespace production 
 kubectl expose deployment lab4backend --port 80 --target-port 8080 --name backend -n development
 ```
+
+</p>
+</details>
+<br/>
 
 3. We're going to use the `busybox` image to interact with DNS using nslookups. Create a pod named `nettools` in both the `dev` and `prod` namespaces. Use the `busybox` image. You'll need it to run a `command` of `sleep infinity` or it will immediately transition to a `completed` state.
 
