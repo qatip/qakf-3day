@@ -223,7 +223,7 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-  - host: dev.{controller-pubic-ip}.nip.io # make sure this matches your controller node's IP address
+  - host: dev.{controller-pubic-ip}.nip.io # <Update this line>
     http:
       paths:
       - path: /
