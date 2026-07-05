@@ -288,13 +288,4 @@ spec:
 
 18. Apply and test the prodingress.yaml file, similar to steps 15 and 16 above (just replace "prod" with "dev" in those commands).
 
-<details><summary>Stretch goal - optional exercise</summary>
-<p>
-
-19. **Optional stretch goal** create the backend deployment and service, the frontend deployment and service and an ingress in the `test` namespace as well. You might want to change the backend deployment's image versions to dev:v3, test:v2 and prod:v1 (because there's a reason we created three of them!)
-
-</p>
-</details>
-<br/>
-
-20. That's it, you're done! Let your instructor know that you've finished the lab.
+19. That's it, you're done! Let your instructor know that you've finished the lab.
