@@ -6,7 +6,7 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-  - host: prod.172.17.1.10.nip.io
+  - host: prod.{controller public ip}.sslip.io
     http:
       paths:
       - path: /

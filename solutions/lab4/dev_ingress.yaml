@@ -6,7 +6,7 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-  - host: dev.172.17.1.10.nip.io # make sure the IP address matches your node's IP address
+  - host: dev.{controller public ip}.sslip.io # make sure the IP address matches your node's IP address
     http:
       paths:
       - path: /
