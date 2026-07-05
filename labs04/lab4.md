@@ -72,7 +72,7 @@ kubectl exec -it nettools -n development -- nslookup backend
 </details>
 <br/>
 
-Example output:
+Example output (with emphasis added):
 
 ```
 Server:         10.96.0.10
@@ -80,8 +80,8 @@ Address:        10.96.0.10:53
 
 ** server can't find backend.cluster.local: NXDOMAIN
 
-Name:   backend.development.svc.cluster.local
-Address: 10.107.29.209
+Name:   backend.development.svc.cluster.local     <<<<<< *** here *** >>>>>>
+Address: 10.107.29.209                            <<<<<< *** here *** >>>>>>    
 
 ** server can't find backend.svc.cluster.local: NXDOMAIN
 ** server can't find backend.cluster.local: NXDOMAIN
