@@ -45,7 +45,7 @@ kubectl expose deployment lab4backend --port 80 --target-port 8080 --name backen
 </details>
 <br/>
 
-3. We're going to use the `busybox` image to interact with DNS using nslookups. Create a pod named `nettools` in both the `dev` and `prod` namespaces. Use the `busybox` image. You'll need it to run a `command` of `sleep infinity` or it will immediately transition to a `completed` state.
+3. So, how does one pod 'find' another pod in the cluster ? It uses DNS. To see how this happens, we are going to use a `busybox` image to interact with DNS using nslookups. This will create a pod container that we can connect to and perform nslookups, simulating what our frontend pod will automatically do in order to find a backend pod. Create a pod named `nettools` in both the `dev` and `prod` namespaces. Use the `busybox` image. You'll need it to run a `command` of `sleep infinity` or it will immediately transition to a `completed` state.
 
 <details><summary>show commands</summary>
 <p>
