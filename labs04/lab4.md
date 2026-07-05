@@ -134,7 +134,7 @@ kubectl exec -it <frontend -pod-name> -n production -- cat /code/app/main.py
 
 ## 4.2 Install an ingress controller
 
-![Lab 4.2 final result](../diagrams/lab_4_ingress.png)
+![Ingress_Controller](../diagrams/ingress_controller.png)
 
 We can't currently reach the front-end pods from "outside" of the cluster. This is not an issue for the backend services as they are used inside the cluster, but the frontend needs to be reachable from outside. Up to now we have used NodePorts to achieve this. If we were running in a cloud, we could expose the two frontends with two load balancer services, or use the cloud vendor's ingress controller. We'll use a couple of ingress rules behind a single Nginx ingress controller.
 
