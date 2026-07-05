@@ -210,10 +210,7 @@ curl prod-frontend-service-ip
 </details>
 <br/>
 
-14. Create an ingress rule manifest called `devingress.yaml` for the dev frontend using nip.io in the dev namespace. Replace `{controller-pubic-ip}` with your controllers public IP addressYou might want to call the file .
-
-<details><summary>show command</summary>
-<p>
+14. Create an ingress rule manifest called `devingress.yaml` for the dev frontend using nip.io in the dev namespace. Replace `{controller-pubic-ip}` with your controllers public IP address.
 
 devingress.yaml:
 
@@ -237,10 +234,6 @@ spec:
             port:
               number: 80
 ```
-
-</p>
-</details>
-<br/>
 
 15. Create the ingress.
 
