@@ -136,7 +136,7 @@ kubectl exec -it <frontend -pod-name> -n production -- cat /code/app/main.py
 
 ![Ingress_Controller](../diagrams/ingress_controller.png)
 
-We can't currently reach the front-end pods from "outside" of the cluster. This is not an issue for the backend services as they are used inside the cluster, but the frontend needs to be reachable from outside. Up to now we have used NodePorts to achieve this. If we were running in a cloud, we could expose the two frontends with two load balancer services, or use the cloud vendor's ingress controller. We'll use a couple of ingress rules behind a single Nginx ingress controller.
+Until now we've exposed our frontend applications using NodePort services. Although this is perfectly adequate for our lab environment, production deployments typically use an Ingress Controller to provide external access. Backend services remain internal to the cluster as ClusterIP services, while frontend traffic is routed through the ingress layer. In this exercise, we'll deploy a single NGINX Ingress Controller and create separate ingress rules to direct traffic to the development and production frontends.
 
 9. Run the following command to install an Nginx Ingress Controller. A whole bunch of resources will be created. Helm is a package manager for Kubernetes, which we haven't covered yet, but we will, in the very next module.
 
