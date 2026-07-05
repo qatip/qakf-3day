@@ -187,7 +187,7 @@ Although the service is of type LoadBalancer, it is still accessible via the aut
 <p>
 
 ```bash
-kubectl expose deployment lab4frontend --port 80 --target-port 8080 --name frontend --namespace production 
+kubectl expose deployment lab4frontend --port 80 --target-port 8080 --name frontend -n production 
 kubectl expose deployment lab4frontend --port 80 --target-port 8080 --name frontend -n development
 ```
 
@@ -210,7 +210,7 @@ curl prod-frontend-service-ip
 </details>
 <br/>
 
-14. Create an ingress rule manifest called `devingress.yaml` for the dev frontend using nip.io in the dev namespace. Replace `{controller-pubic-ip}` with your controllers public IP address.
+14. Create an ingress rule manifest called `devingress.yaml` for the dev frontend using sslip.io in the dev namespace. Replace `{controller-pubic-ip}` with your controllers public IP address.
 
 devingress.yaml:
 
@@ -248,11 +248,15 @@ kubectl create -f devingress.yaml
 </details>
 <br/>
 
-16. Point your web browser at *dev*.**your-ip***.nip.io*:**ingress-nodePort**, for example in this instance it's `dev.172.17.1.10.sslip.io:31886` 
+16. Point your web browser at *dev*.**your-ip***.sslip.io*:**ingress-nodePort**, for example in this instance it's `dev.172.17.1.10.sslip.io:31886` 
 
-17. Create another ingress for the production namespace. It will be very similar to the devingress.yaml, but you need to make sure you change all the bits that need to change.
+17. Create another ingress for the production namespace named prodingress.yaml by copying devingress.yaml. Update prodingress.yaml to reflect the production namespace:
 
-<details><summary>show command</summary>
+```
+cp devingress.yaml prodingress.yaml
+```
+
+<details><summary>show prodingress.yaml</summary>
 <p>
 
 prodingress.yaml:
