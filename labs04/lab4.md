@@ -118,7 +118,7 @@ student@k8s-controller-0:~$ kubectl -n development get pods --output wide | grep
 lab4frontend-f47f6cf46-xfr92   1/1     Running   0          3h49m   10.0.1.147   k8s-worker-1   <none>           <none>
 ```
 
-7. ***curl {ip}:8080***, using each frontend pods' IP address in turn. You should see a v2 message in the development namespace and a v1 message in production.
+7. ***curl {ip}:8080***, using each frontend pods' IP address in turn. You should see a v2 message in the development namespace and a v1 message in production. Note that this is all internal as we have not yet exposed the frontends.
 
 Example output:
 
@@ -171,9 +171,13 @@ ingress-nginx   ingress-nginx-controller             LoadBalancer   10.107.57.60
 ingress-nginx   ingress-nginx-controller-admission   ClusterIP      10.104.181.164   <none>        443/TCP                      72s
 ```
 
-<br/>
+You should see an ingress-nginx-controller service of type LoadBalancer.
 
-11. Make a note of the nodePort number of the `ingress-nginx-controller` service. Browse to yourIp:nodePort. On the standard build for this course, that's 172.17.1.10 but you could use `hostname -i` to check. You should get a 404 File Not Found error because we haven't configured any backends. That's ingress backends, not our simple backend service, and we're going to sort that out now.
+Note: Because this lab is not integrated with a cloud provider, the EXTERNAL-IP will remain <pending>. In a managed Kubernetes service such as AKS, EKS or GKE, Kubernetes would automatically provision a cloud load balancer and populate this field with its external IP address or hostname.
+
+Although the service is of type LoadBalancer, it is still accessible via the automatically allocated NodePort (here shown as 30899 for http). We'll use that NodePort throughout the remainder of the lab.
+
+11. Make a note of the nodePort number of ***your*** `ingress-nginx-controller` service. Browse to http://{controller-publicip:nodePort} from your local browser. You should get a 404 File Not Found error because we haven't configured any backends. That's ingress backends, not our simple backend service, and we're going to sort that out now.
 
 ## 4.3 Expose the frontends
 
