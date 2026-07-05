@@ -266,11 +266,11 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: prod-ingress    #change this from dev
-  namespace: production #change this from dev
+  namespace: production #change this from development
 spec:
   ingressClassName: nginx
   rules:
-  - host: prod.{your-ip}.sslip.io #change this from dev
+  - host: prod.{controller-public-ip}.sslip.io #change this from dev
     http:
       paths:
       - path: /
