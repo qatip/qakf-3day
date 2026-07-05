@@ -17,7 +17,7 @@ kubectl create secret generic secrets --from-literal password=ProdSecret --names
 
 Our application consists of a frontend (the user interface) and a backend (the application logic). The frontend pod never accesses backend pods directly, it communicates with them  through the backend service. By deploying different backend versions (v2 in development and v1 in production), we can clearly demonstrate namespace isolation and show how CoreDNS ensures that each frontend communicates only with the backend in its own environment.
 
-1. Create a `public.ecr.aws/qa-wfl/qa-wfl/qakf/sbe` deployment in each of the `dev` and `prod` namespaces, using the `:v2` image in `dev` and the `:v1` image in `production`.
+1. Create backend deployments using `public.ecr.aws/qa-wfl/qa-wfl/qakf/sbe` in each of the `dev` and `prod` namespaces, using the `:v2` image in `dev` and the `:v1` image in `production`.
 
 <details><summary>show command</summary>
 <p>
@@ -37,7 +37,7 @@ kubectl create deploy lab4backend --image=public.ecr.aws/qa-wfl/qa-wfl/qakf/sbe:
 <p>
 
 ```
-kubectl expose deployment lab4backend --port 80 --target-port 8080 --name backend --namespace production 
+kubectl expose deployment lab4backend --port 80 --target-port 8080 --name backend -n production 
 kubectl expose deployment lab4backend --port 80 --target-port 8080 --name backend -n development
 ```
 
@@ -91,7 +91,7 @@ command terminated with exit code 1
 ```
 <br/>
 
-Note that CoreDNS tried a lot of variations of the name `backend` but one of the first was for `backend.development.svc.clsuter.local` in this case. When run against the prod namespace, it'll look there. This is to illustrate that CoreDNS "knows" which namespace a pod is running in and returns the appropriate lookup.
+Note that CoreDNS tried a lot of variations of the name `backend` but one of the first was for `backend.development.svc.cluster.local` in this case. When run against the prod namespace, it'll look there. This is to illustrate that CoreDNS "knows" which namespace a pod is running in and returns the appropriate lookup.
 
 5. There's only one empty placeholder remaining in our simple front end application, the data it receives from the backing service, obtained by performing an nslookup, just as we did using busybox. Let's finish that off now by applying a copy of the frontend deployment created in lab3 into both namespaces:
 
@@ -173,9 +173,9 @@ ingress-nginx   ingress-nginx-controller-admission   ClusterIP      10.104.181.1
 
 You should see an ingress-nginx-controller service of type LoadBalancer.
 
-Note: Because this lab is not integrated with a cloud provider, the EXTERNAL-IP will remain <pending>. In a managed Kubernetes service such as AKS, EKS or GKE, Kubernetes would automatically provision a cloud load balancer and populate this field with its external IP address or hostname.
+Note: Because this lab is not integrated with a cloud provider, the EXTERNAL-IP will remain as 'pending'. In a managed Kubernetes service such as AKS, EKS or GKE, Kubernetes would automatically provision a cloud load balancer and populate this field with its external IP address or hostname.
 
-Although the service is of type LoadBalancer, it is still accessible via the automatically allocated NodePort (here shown as 30899 for http). We'll use that NodePort throughout the remainder of the lab.
+Although the service is of type LoadBalancer, it is still accessible via the automatically allocated NodePort (here shown as 31886 for http). We'll use that NodePort throughout the remainder of the lab.
 
 11. Make a note of the nodePort number of ***your*** `ingress-nginx-controller` service. Browse to http://{controller-publicip:nodePort} from your local browser. You should get a 404 File Not Found error because we haven't configured any backends. That's ingress backends, not our simple backend service, and we're going to sort that out now.
 
