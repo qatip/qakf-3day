@@ -250,7 +250,7 @@ kubectl create -f devingress.yaml
 
 16. Point your web browser at *dev*.**your-ip***.sslip.io*:**ingress-nodePort**, for example in this instance it's `dev.172.17.1.10.sslip.io:31886` 
 
-17. Create another ingress for the production namespace named prodingress.yaml by copying devingress.yaml. Update prodingress.yaml to reflect the production namespace:
+17. Create another ingress for the production namespace named prodingress.yaml by copying devingress.yaml. Then update prodingress.yaml to reflect the production namespace:
 
 ```
 cp devingress.yaml prodingress.yaml
