@@ -250,6 +250,8 @@ kubectl create -f devingress.yaml
 
 16. Point your web browser at *dev*.**your-ip***.sslip.io*:**ingress-nodePort**, for example in this instance it's `dev.172.17.1.10.sslip.io:31886` 
 
+![devslip](../diagrams/devslip.png)
+
 17. Create another ingress for the production namespace named prodingress.yaml by copying devingress.yaml. Then update prodingress.yaml to reflect the production namespace:
 
 ```
@@ -287,5 +289,7 @@ spec:
 <br/>
 
 18. Apply and test the prodingress.yaml file, similar to steps 15 and 16 above (just replace "prod" with "dev" in those commands).
+
+![prodslip](../diagrams/prodslip.png)
 
 19. That's it, you're done! Let your instructor know that you've finished the lab.
