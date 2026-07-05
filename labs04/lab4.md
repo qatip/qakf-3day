@@ -13,7 +13,7 @@ kubectl create secret generic secrets --from-literal password=ProdSecret --names
 
 
 ## 4.1 Explore CoreDNS
-![Lab 4.1 final result](../diagrams/lab_4_coredns.png)
+![Lab 4.1 CoreDNS](../diagrams/coredns.png)
 
 1. Create a `public.ecr.aws/qa-wfl/qa-wfl/qakf/sbe` deployment in each of the `dev` and `prod` namespaces, using the `:v2` image in `dev` and the `:v1` image in `production`.
 
