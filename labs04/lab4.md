@@ -223,7 +223,7 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-  - host: dev.{controller-pubic-ip}.nip.io # <Update this line>
+  - host: dev.{controller-pubic-ip}.sslip.io # <Update this line>
     http:
       paths:
       - path: /
@@ -248,7 +248,7 @@ kubectl create -f devingress.yaml
 </details>
 <br/>
 
-16. Point your web browser at *dev*.**your-ip***.nip.io*:**ingress-nodePort**, for example in this instance it's `dev.172.17.1.10.nip.io:31886` 
+16. Point your web browser at *dev*.**your-ip***.nip.io*:**ingress-nodePort**, for example in this instance it's `dev.172.17.1.10.sslip.io:31886` 
 
 17. Create another ingress for the production namespace. It will be very similar to the devingress.yaml, but you need to make sure you change all the bits that need to change.
 
@@ -266,7 +266,7 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-  - host: prod.172.17.1.10.nip.io #change this from dev
+  - host: prod.{your-ip}.sslip.io #change this from dev
     http:
       paths:
       - path: /
