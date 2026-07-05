@@ -15,6 +15,8 @@ kubectl create secret generic secrets --from-literal password=ProdSecret --names
 ## 4.1 Explore CoreDNS
 ![Lab 4.1 CoreDNS](../diagrams/coredns.png)
 
+Our application consists of a frontend (the user interface) and a backend (the application logic). The frontend never accesses pods directly—it communicates with the backend through a Kubernetes Service named backend. By deploying different backend versions (v2 in development and v1 in production), we can clearly demonstrate namespace isolation and show how CoreDNS ensures that each frontend communicates only with the backend in its own environment.
+
 1. Create a `public.ecr.aws/qa-wfl/qa-wfl/qakf/sbe` deployment in each of the `dev` and `prod` namespaces, using the `:v2` image in `dev` and the `:v1` image in `production`.
 
 <details><summary>show command</summary>
