@@ -1,0 +1,9 @@
+kubectl run web \
+  --image=bitnami/apache \
+  --overrides='{
+    "spec": {
+      "securityContext": {
+        "runAsNonRoot": true
+      }
+    }
+  }
