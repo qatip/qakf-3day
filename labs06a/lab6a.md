@@ -104,10 +104,7 @@ kubectl -n webserver get pods
 <details>
 <summary>solution</summary>
 
-```yaml
-
-
-# rest of yaml omitted
+```revised deploy.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
