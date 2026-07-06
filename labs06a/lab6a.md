@@ -1,5 +1,9 @@
 # Lab 6a - Policy and Governance
 
+**Why are we doing this?**
+
+In production Kubernetes clusters, security policies are often enforced at the namespace level to ensure that all workloads comply with an organisation's security standards. Throughout this lab you'll see how these policies prevent insecure workloads from being deployed, and how to modify manifests so they satisfy the required security constraints.
+
 ## 6a.1 Setup the Namespaces
 
 1. Create and label the two namespaces we will be using for this lab and ensure no remnants from previous labs remain that might cause issues:
