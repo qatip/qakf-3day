@@ -11,4 +11,3 @@ spec:
     # TODO: allow traffic from the ingress namespace
     ports:
     # TODO: allow TCP traffic to port 8080
-    

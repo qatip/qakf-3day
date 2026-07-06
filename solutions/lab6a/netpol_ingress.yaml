@@ -3,19 +3,14 @@ kind: NetworkPolicy
 metadata:
   name: ingress-netpol
 spec:
-podSelector:
-    matchLabels:
-      app: nginx-ingress
-      app.kubernetes.io/name: ingress-nginx
+  podSelector: {}
   policyTypes:
   - Egress
   egress:
   - to:
-    # TODO: allow traffic to the webserver namespace
     - namespaceSelector:
-      matchLabels:
-        app: webserver   
+        matchLabels:
+          app: webserver
     ports:
     - protocol: TCP
-      port: 8080    
-    # TODO: allow TCP traffic to port 8080
+      port: 8080

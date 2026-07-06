@@ -68,8 +68,8 @@ spec:
 5. Apply the two `NetworkPolicy` resources into the appropriate namespace:
 
 ```bash
-kubectl -n ingress apply -f solutions/lab6a/netpol_ingress.yaml
-kubectl -n webserver apply -f solutions/lab6a/netpol_webserver.yaml
+kubectl -n ingress apply -f netpol_ingress.yaml
+kubectl -n webserver apply -f netpol_webserver.yaml
 ```
 
 6. Use helm to deploy the Nginx ingress controller into the ingress namespace:
