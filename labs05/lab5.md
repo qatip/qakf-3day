@@ -155,6 +155,9 @@ If you have not completed lab4 in this current session then you will get error m
 
 Run the following commands to reinstate assumed namespace/deployments/services/configmaps/secrets resources...
 
+<details><summary>show command</summary>
+<p>
+
 ```bash
 kubectl create namespace development || true
 kubectl create namespace production || true
@@ -176,6 +179,10 @@ kubectl expose deployment frontend --port 80 --target-port 8080 --name frontend 
 kubectl get service -n production
 kubectl get service -n development
 ```
+
+</p>
+</details>
+<br/>
 
 8. Create a netpol that allows all traffic on port 8080 to pods with an `app` label with a value of `frontend`. But check that your pods actually have a `label` of `frontend` and not `lab3frontend` or `lab4frontend`. If they do, you may need to tweak things. Either modify the deployment manifest and recreate it, or modify the pod selector in the netpol.
 
