@@ -1,9 +1,9 @@
 # Lab 5 - Security
 ## 5.1 RBAC
 
-We're going to create a pod that prints all of the logs of 10 random number generator jobs.
+We're going to create and run a job manifest that creates 10 pods, each of which ranomly generates a number. The aim eventually is to look into the logs they produce:
 
-1. Examine the provided job.yaml and then apply it to create the 10 random number generator jobs.
+1. Examine the provided job.yaml and then apply it to create the 10 random number generator pods.
 
 ```bash
 cd ~
@@ -22,7 +22,7 @@ kubectl run kubectl --image=bitnami/kubectl --command sleep infinity
 ```
 <br/>
 
-3. Now `exec -it` into the kubectl pod and run the command (with `sh -c`) that we came up with in the previous lab for getting all the pods' logs. It should fail.
+3. Now `exec -it` into the kubectl pod and run a command that attempts to retrieve all the pods' logs. It should fail!
 
 ```bash
 kubectl exec -it kubectl -- \
