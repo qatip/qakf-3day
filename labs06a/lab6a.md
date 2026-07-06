@@ -53,6 +53,7 @@ spec:
   policyTypes:
   - Ingress
   ingress:
+# ------- Update from sections to match below ------
   - from:
     - namespaceSelector:
         matchLabels:
