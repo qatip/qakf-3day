@@ -439,6 +439,7 @@ kubectl delete rolebindings pod-logger-binding
 kubectl delete clusterrole pod-logger
 kubectl delete pod kubectl
 kubectl delete pod web
+kubectl delete ingressclasses nginx 
 ```
 
 20. That's it, you're done! Let your instructor know that you've finished the lab.

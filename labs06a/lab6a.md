@@ -2,13 +2,14 @@
 
 ## 6a.1 Setup the Namespaces
 
-1. Create and label the two namespaces we will be using for this lab:
+1. Create and label the two namespaces we will be using for this lab and ensure no remnants from previous labs remain that might cause issues:
 
 ```bash
 kubectl create ns webserver
 kubectl create ns ingress
 kubectl label ns webserver app=webserver
 kubectl label ns ingress app=nginx-ingress
+kubectl delete ingress
 ```
 
 2. Apply a Pod Security Standard of `Restricted` to the webserver namespace:
@@ -47,8 +48,8 @@ ingress:
 5. Apply the `NetworkPolicy` resources for the two namespaces:
 
 ```bash
-kubectl -n ingress apply -f solutions/lab6a/netpol_ingress.yml
-kubectl -n webserver apply -f solutions/lab6a/netpol_webserver.yml
+kubectl -n ingress apply -f solutions/lab6a/netpol_ingress.yaml
+kubectl -n webserver apply -f solutions/lab6a/netpol_webserver.yaml
 ```
 
 6. Use helm to deploy the Nginx ingress controller into the ingress namespace:
