@@ -1,7 +1,7 @@
 # Lab 5 - Security
 ## 5.1 RBAC
 
-We're going to create a pod that prints all of the logs of of 10 random number generator jobs.
+We're going to create a pod that prints all of the logs of 10 random number generator jobs.
 
 1. Examine the provided job.yaml and then create the jobs.
 
