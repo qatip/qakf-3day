@@ -2,7 +2,7 @@
 
 ## 6a.1 Setup the Namespaces
 
-1. [1]Create and label the two namespaces we will be using for this lab:
+1. Create and label the two namespaces we will be using for this lab:
 
 ```bash
 kubectl create ns webserver
@@ -11,20 +11,20 @@ kubectl label ns webserver app=webserver
 kubectl label ns ingress app=nginx-ingress
 ```
 
-2. [2]Apply a Pod Security Standard of `Restricted` to the webserver namespace:
+2. Apply a Pod Security Standard of `Restricted` to the webserver namespace:
 
 ```bash
 kubectl label ns webserver pod-security.kubernetes.io/enforce=restricted
 ```
 
-3. [3]Generate a manifest for a `ResourceQuota` object and apply it to the webserver namespace:
+3. Generate a manifest for a `ResourceQuota` object and apply it to the webserver namespace:
 
 ```bash
 kubectl create quota webserver-quota --hard=pods=5,cpu=2,memory=2G --dry-run=client -o yaml > ws-quota.yml
 kubectl apply -n webserver -f ws-quota.yml
 ```
 
-4. [4]Review the provided `NetworkPolicy` resource manifest for the webserver namespace (`solutions/06_01_netpol_webserver.yaml`). Fill in the `from` and `ports` sections to allow traffic from the ingress namespace on port 8080. See the solution below if needed
+4. Review the provided `NetworkPolicy` resource manifest for the webserver namespace (`solutions/06_01_netpol_webserver.yaml`). Fill in the `from` and `ports` sections to allow traffic from the ingress namespace on port 8080. See the solution below if needed
 
 <details>
 <summary>solution</summary>
@@ -44,14 +44,14 @@ ingress:
 
 </details>
 
-5. [5]Apply the `NetworkPolicy` resources for the two namespaces:
+5. Apply the `NetworkPolicy` resources for the two namespaces:
 
 ```bash
 kubectl -n ingress apply -f solutions/06_01_netpol_ingress.yml
 kubectl -n webserver apply -f solutions/06_01_netpol_webserver.yml
 ```
 
-6. [6]Use helm to deploy the Nginx ingress controller into the ingress namespace:
+6. Use helm to deploy the Nginx ingress controller into the ingress namespace:
 
 ```bash
 helm -n ingress install nginx-ingress oci://ghcr.io/nginx/charts/nginx-ingress --version 2.5.2 --set controller.kind=DaemonSet
@@ -59,13 +59,13 @@ helm -n ingress install nginx-ingress oci://ghcr.io/nginx/charts/nginx-ingress -
 
 ## 6a.2 Deploy the Webserver
 
-7. [7]Generate a deployment manifest using `kubectl create`:
+7. Generate a deployment manifest using `kubectl create`:
 
 ```bash
 kubectl create deploy webserver --replicas=10 --image=nginx:alpine --port=80 --dry-run=client -o yaml > deploy.yml
 ```
 
-8. [8]Apply the manifest:
+8. Apply the manifest:
 
 ```bash
 kubectl apply -n webserver -f deploy.yml
@@ -76,9 +76,9 @@ You will notice that, although the deployment is created, we get a warning about
 kubectl -n webserver get pods
 ```
 
-9. [9]We don't need to look too hard to see what the problem could be here, thanks to the warning we got when creating the deployment. Our restricted pod security standard requires certain privilege limitations which are not currently present on our pods. 
+9. We don't need to look too hard to see what the problem could be here, thanks to the warning we got when creating the deployment. Our restricted pod security standard requires certain privilege limitations which are not currently present on our pods. 
 
-10. [10]Add an appropriate securityContext to the container configuration in your deployment manifest - see the solution below if needed:
+10. Add an appropriate securityContext to the container configuration in your deployment manifest - see the solution below if needed:
 
 <details>
 <summary>solution</summary>
