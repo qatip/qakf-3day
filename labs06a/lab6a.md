@@ -9,7 +9,7 @@ kubectl create ns webserver
 kubectl create ns ingress
 kubectl label ns webserver app=webserver
 kubectl label ns ingress app=nginx-ingress
-kubectl delete ingress
+kubectl delete ingressclasses nginx 
 ```
 
 2. Apply a Pod Security Standard of `Restricted` to the webserver namespace:
@@ -21,8 +21,8 @@ kubectl label ns webserver pod-security.kubernetes.io/enforce=restricted
 3. Generate a manifest for a `ResourceQuota` object and apply it to the webserver namespace:
 
 ```bash
-kubectl create quota webserver-quota --hard=pods=5,cpu=2,memory=2G --dry-run=client -o yaml > ws-quota.yml
-kubectl apply -n webserver -f ws-quota.yml
+kubectl create quota webserver-quota --hard=pods=5,cpu=2,memory=2G --dry-run=client -o yaml > ws-quota.yaml
+kubectl apply -n webserver -f ws-quota.yaml
 ```
 
 4. Review the provided `NetworkPolicy` resource manifest for the webserver namespace (`nano ~/qakf-3day/solutions/lab6a/netpol_webserver.yaml`). Fill in the `from` and `ports` sections to allow traffic from the ingress namespace on port 8080. See the solution below if needed
@@ -63,13 +63,13 @@ helm -n ingress install nginx-ingress oci://ghcr.io/nginx/charts/nginx-ingress -
 7. Generate a deployment manifest using `kubectl create`:
 
 ```bash
-kubectl create deploy webserver --replicas=10 --image=nginx:alpine --port=80 --dry-run=client -o yaml > deploy.yml
+kubectl create deploy webserver --replicas=10 --image=nginx:alpine --port=80 --dry-run=client -o yaml > deploy.yaml
 ```
 
 8. Apply the manifest:
 
 ```bash
-kubectl apply -n webserver -f deploy.yml
+kubectl apply -n webserver -f deploy.yaml
 ```
 You will notice that, although the deployment is created, we get a warning about a policy violation. Confirm that there are currently no pods:
 
@@ -85,6 +85,8 @@ kubectl -n webserver get pods
 <summary>solution</summary>
 
 ```yaml
+
+
 # rest of yaml omitted
 containers:
 - image: nginx:alpine
@@ -103,7 +105,7 @@ containers:
 10. [10]Time to see if our deployment is working now. Reapply the manifest, then get the pods in the webserver namespace:
 
 ```bash
-kubectl -n webserver apply -f deploy.yml
+kubectl -n webserver apply -f deploy.yaml
 kubectl -n webserver get pods
 ```
 There are still no pods found. Time to begin some deeper troubleshooting. 
@@ -161,7 +163,7 @@ resources:
 13. [13]Reapply the manifest and perform a `get pods` again:
 
 ```bash
-kubectl -n webserver apply -f deploy.yml
+kubectl -n webserver apply -f deploy.yaml
 ```
 Observe that we now have some pods, and two new issues:
   * The pods we have are all failing to create containers
@@ -187,9 +189,9 @@ containers:
 # rest of yaml omitted
 ```
 
-16. [16]Apply the manifest again: `kubectl -n webserver apply -f deploy.yml`. Confirm that there are now 5 running pods.
+16. [16]Apply the manifest again: `kubectl -n webserver apply -f deploy.yaml`. Confirm that there are now 5 running pods.
 
-17. [17]The other issue that we identified was that we had only 5 pods, not the 10 specified in `deploy.yml`. This is, of course, due to the pod count limit in the ResourceQuota. If we had good reason to need all 10 replicas, we could adjust the ResourceQuota accordingly. Seeing as we don't need 10 replicas, we will edit `deploy.yml` and change the `replicas:` value to 5, to respect the quota. Make this change and apply the manifest once more.
+17. [17]The other issue that we identified was that we had only 5 pods, not the 10 specified in `deploy.yaml`. This is, of course, due to the pod count limit in the ResourceQuota. If we had good reason to need all 10 replicas, we could adjust the ResourceQuota accordingly. Seeing as we don't need 10 replicas, we will edit `deploy.yaml` and change the `replicas:` value to 5, to respect the quota. Make this change and apply the manifest once more.
 
 18. [18]Time to expose the deployment. Remember that the service should be of type `ClusterIP`:
 
@@ -201,13 +203,13 @@ kubectl -n webserver expose deploy webserver --type=ClusterIP --port=8080
 19. [19]We will now set up the ingress routing to the webserver deployment. Generate a starter ingress configuration:
 
 ```bash
-kubectl -n ingress create ingress new-ingress --class=nginx --rule="/*=webserver:8080" --dry-run=client -o yaml > ingress.yml
+kubectl -n ingress create ingress new-ingress --class=nginx --rule="/*=webserver:8080" --dry-run=client -o yaml > ingress.yaml
 ```
 
 20. [20]Apply the ingress configuration:
 
 ```bash
-kubectl apply -f ingress.yml
+kubectl apply -f ingress.yaml
 ```
 
 21. [21]Retrieve the high-numbered port associated with the ingress service, and in a browser navigate to `http://<cluster-node-ip>:<service-port>`. Do you see the webserver?
@@ -216,16 +218,16 @@ kubectl apply -f ingress.yml
 
 23. [23]The answer lies in the way that ingress works - the services used as backends for the ingress are assumed to exist in the same namespace as the ingress itself. The solution to this problem is the `ExternalName` service type, which we can use to create a `webserver` service in the ingress namespace which resolves to the cluster DNS of the target service in the webserver namespace
 
-24. [24]Review and apply the provided `solutions/06_03_ename_svc.yml` manifest to create the appropriate service into the ingress namespace:
+24. [24]Review and apply the provided `solutions/06_03_ename_svc.yaml` manifest to create the appropriate service into the ingress namespace:
 
 ```bash
-kubectl apply -f solutions/06_03_ename-svc.yml
+kubectl apply -f solutions/06_03_ename-svc.yaml
 ```
 Reload the browser tab. Is the webserver reachable now?
 
 25. [25]We have one more configuration issue to solve. The ExternalName service that we have just created creates a DNS record which is used to resolve the correct service in the webserver namespace. However, in order to do this, we need to be able to make requests to the `kube-dns` component to lookup the fully qualified service name. As this component runs in the `kube-system` namespace, egress traffic to it is currently blocked by our network policy.
 
-26. [26]Edit the `solutions/06_01_netpol_ingress.yml` manifest and add the following egress rule _in addition to_ the existing one:
+26. [26]Edit the `solutions/06_01_netpol_ingress.yaml` manifest and add the following egress rule _in addition to_ the existing one:
 
 ```yaml
 - podSelector:

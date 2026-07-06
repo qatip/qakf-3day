@@ -434,6 +434,7 @@ spec:
 ```bash
 kubectl delete namespace production
 kubectl delete namespace development
+kubectl delete namespace ingress-nginx
 kubectl delete jobs randoms
 kubectl delete rolebindings pod-logger-binding
 kubectl delete clusterrole pod-logger
