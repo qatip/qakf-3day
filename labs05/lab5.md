@@ -66,7 +66,7 @@ kubectl create -f clusterrole.yaml
 </details>
 <br/>
 
-5. Create and apply rolebinding manifest to bind the ClusterRole to the `default` service account in the `default` namespace. 
+5. Create and apply a rolebinding manifest to bind the ClusterRole to the `default` service account in the `default` namespace. 
 
 <details><summary>show YAML</summary>
 <p>
@@ -156,6 +156,44 @@ frontend   ClusterIP   10.104.176.195   <none>        80/TCP    5d17h
 ```
 
 <br/>
+
+***note***
+If you have not completed lab4 in this current session then you will get error messages stating 'No resources found ....'
+
+Run the following commands to reinstate assumed namespace/deployments/services/configmaps/secrets and controller resources...
+
+```bash
+kubectl create namespace development || true
+kubectl create namespace production || true
+kubectl create configmap settings --from-literal=colour=purple --namespace development || true
+kubectl create configmap settings --from-literal=colour=green --namespace production || true
+kubectl create secret generic secrets --from-literal password=DevSecret --namespace development || true
+kubectl create secret generic secrets --from-literal password=ProdSecret --namespace production || true
+
+kubectl create deploy backend --image=public.ecr.aws/qa-wfl/qa-wfl/qakf/sbe:v1 -n production 
+kubectl create deploy backend --image=public.ecr.aws/qa-wfl/qa-wfl/qakf/sbe:v2 -n development
+kubectl expose deployment backend --port 80 --target-port 8080 --name backend -n production 
+kubectl expose deployment backend --port 80 --target-port 8080 --name backend -n development
+
+kubectl apply -n production -f ./qakf-3day/solutions/lab4/lab4frontend.yaml
+kubectl apply -n development -f ./qakf-3day/solutions/lab4/lab4frontend.yaml
+kubectl expose deployment lab4frontend --port 80 --target-port 8080 --name frontend -n production 
+kubectl expose deployment lab4frontend --port 80 --target-port 8080 --name frontend -n development
+
+helm install ingress-nginx ingress-nginx \
+  --repo https://kubernetes.github.io/ingress-nginx \
+  --namespace ingress-nginx --create-namespace
+
+
+
+```
+
+
+
+
+
+
+
 
 8. Create a netpol that allows all traffic on port 8080 to pods with an `app` label with a value of `frontend`. But check that your pods actually have a `label` of `frontend` and not `lab3frontend` or `lab4frontend`. If they do, you may need to tweak things. Either modify the deployment manifest and recreate it, or modify the pod selector in the netpol.
 
