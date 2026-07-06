@@ -31,7 +31,7 @@ kubectl create quota webserver-quota --hard=pods=5,cpu=2,memory=2G --dry-run=cli
 kubectl apply -n webserver -f ws-quota.yaml
 ```
 
-4. Create two network policy manifests based on exemplars in the solutions/lab6a
+4. Create two network policy manifests based on exemplars in solutions/lab6a
 
 ```bash
 cp ~/qakf-3day/solutions/lab6a/netpol_webserver_original.yaml netpol_webserver.yaml
@@ -108,16 +108,41 @@ kubectl -n webserver get pods
 
 
 # rest of yaml omitted
-containers:
-- image: nginx:alpine
-  securityContext:
-    runAsNonRoot: true
-    allowPrivilegeEscalation: false
-    capabilities:
-      drop: ["ALL"]
-    seccompProfile:
-      type: RuntimeDefault
-# rest of yaml omitted
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: webserver
+  name: webserver
+spec:
+  replicas: 10
+  selector:
+    matchLabels:
+      app: webserver
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: webserver
+    spec:
+      containers:
+      - image: nginx:alpine
+## --------- new lines from here
+      securityContext:
+        runAsNonRoot: true
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop: ["ALL"]
+        seccompProfile:
+          type: RuntimeDefault
+## ----------- to here  
+       name: nginx
+        ports:
+        - containerPort: 80
+        resources: {}
+status: {}
 ```
 
 </details>
