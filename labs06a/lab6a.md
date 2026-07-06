@@ -24,7 +24,7 @@ kubectl create quota webserver-quota --hard=pods=5,cpu=2,memory=2G --dry-run=cli
 kubectl apply -n webserver -f ws-quota.yml
 ```
 
-4. Review the provided `NetworkPolicy` resource manifest for the webserver namespace (`solutions/06_01_netpol_webserver.yaml`). Fill in the `from` and `ports` sections to allow traffic from the ingress namespace on port 8080. See the solution below if needed
+4. Review the provided `NetworkPolicy` resource manifest for the webserver namespace (`solutions/lab6a/netpol_webserver.yaml`). Fill in the `from` and `ports` sections to allow traffic from the ingress namespace on port 8080. See the solution below if needed
 
 <details>
 <summary>solution</summary>
@@ -47,8 +47,8 @@ ingress:
 5. Apply the `NetworkPolicy` resources for the two namespaces:
 
 ```bash
-kubectl -n ingress apply -f solutions/06_01_netpol_ingress.yml
-kubectl -n webserver apply -f solutions/06_01_netpol_webserver.yml
+kubectl -n ingress apply -f solutions/lab6a/netpol_ingress.yml
+kubectl -n webserver apply -f solutions/lab6a/netpol_webserver.yml
 ```
 
 6. Use helm to deploy the Nginx ingress controller into the ingress namespace:
