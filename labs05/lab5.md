@@ -429,4 +429,14 @@ spec:
 </details>
 <br/>
 
-19. That's it, you're done! Let your instructor know that you've finished the lab.
+19. Clean up ahead of the next lab:
+
+```bash
+kubectl delete namespace production
+kubectl delete namespace development
+kubectl delete jobs randoms
+kubectl delete rolebindings pod-logger-binding
+kubectl delete clusterrole pod-logger
+```
+
+20. That's it, you're done! Let your instructor know that you've finished the lab.
