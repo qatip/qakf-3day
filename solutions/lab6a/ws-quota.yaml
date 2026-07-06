@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  creationTimestamp: null
+  name: webserver-quota
+spec:
+  hard:
+    cpu: "2"
+    memory: 2G
+    pods: "5"
+status: {}

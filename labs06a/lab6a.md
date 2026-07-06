@@ -31,27 +31,38 @@ kubectl create quota webserver-quota --hard=pods=5,cpu=2,memory=2G --dry-run=cli
 kubectl apply -n webserver -f ws-quota.yaml
 ```
 
-4. Review the provided `NetworkPolicy` resource manifest for the webserver namespace (`nano ~/qakf-3day/solutions/lab6a/netpol_webserver.yaml`). Fill in the `from` and `ports` sections to allow traffic from the ingress namespace on port 8080. See the solution below if needed
+4. Create two network policy manifests based on exemplars in the solutions/lab6a
+
+cp ~/qakf-3day/solutions/lab6a/netpol_webserver_original.yaml netpol_webserver.yaml
+cp ~/qakf-3day/solutions/lab6a/netpol_ingress.yaml netpol_ingress.yaml
+
+5. Review the policy manifests. The webserver policy needs updating to include `from` and `ports` sections that allow traffic from the ingress namespace on port 8080 into the webserver namespace. See the solution below if needed
 
 <details>
-<summary>solution</summary>
+<summary>Revised netpol_webserver.yaml</summary>
 
 ```yaml
-# rest of yaml omitted
-ingress:
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: webserver-netpol
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  ingress:
   - from:
     - namespaceSelector:
         matchLabels:
           app: nginx-ingress 
     ports:
     - protocol: TCP
-      port: 8080
-# rest of yaml omitted
+      port: 8080  
 ```
 
 </details>
 
-5. Apply the `NetworkPolicy` resources for the two namespaces:
+5. Apply the two `NetworkPolicy` resources into the appropriate namespace:
 
 ```bash
 kubectl -n ingress apply -f solutions/lab6a/netpol_ingress.yaml
