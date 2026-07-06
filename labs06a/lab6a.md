@@ -102,9 +102,9 @@ kubectl -n webserver get pods
 10. Add an appropriate securityContext to the container configuration in your deployment manifest - see the solution below if needed:
 
 <details>
-<summary>solution</summary>
+<summary>revised deploy.yaml</summary>
 
-```revised deploy.yaml
+``` bash
 apiVersion: apps/v1
 kind: Deployment
 metadata:
