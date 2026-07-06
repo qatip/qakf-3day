@@ -339,16 +339,30 @@ kubectl run web \
 kubectl delete pod web
 ```
 
-<details><summary>Stretch goal - optional exercise</summary>
-<p>
+17. **Stretch goal.** 
+Try to find a non-privileged httpd image and use that instead.
 
-17. **Optional stretch goal** try to find a non-privileged httpd image and use that instead.
+The official httpd image expects to run as the root user, so it cannot be used with runAsNonRoot: true.
 
-</p>
-</details>
-<br/>
+Your challenge is to research and identify an Apache HTTP Server container image that is designed to run as a non-root user.
 
-18. Add a `runAsNonRoot`: `true` to your frontend deployments in `development` and `production` (and `test` if you have that namespace and feel like doing it). You will need to recreate the deployments. They should be fine, because they're both listening on port 8080 and Kubernetes can tell that they don't need to run as root.
+Once you've found one:
+
+Deploy it using kubectl run.
+
+Configure the Pod with:
+
+securityContext:
+  runAsNonRoot: true
+
+Verify that the Pod reaches the Running state.
+
+Use kubectl describe pod to confirm there are no security context errors.
+
+Hint: Images published by organisations such as Bitnami are often built to run as an unprivileged user by default.
+
+
+18. **Optional** Add a `runAsNonRoot`: `true` to your frontend deployments in `development` and `production` (and `test` if you have that namespace and feel like doing it). You will need to recreate the deployments. They should be fine, because they're both listening on port 8080 and Kubernetes can tell that they don't need to run as root.
 
 <details><summary>show YAML</summary>
 <p>
@@ -408,13 +422,4 @@ spec:
 </details>
 <br/>
 
-<details><summary>Stretch goal - optional exercise</summary>
-<p>
-
-19. **Optional stretch goal** try the same thing with a backend deployment. The simple `runAsNonRoot` won't work in this case because Kubernetes can't tell from the container image that it doesn't need to run as root. Hint: try making it run as a specific user id.
-
-</p>
-</details>
-<br/>
-
-20. That's it, you're done! Let your instructor know that you've finished the lab.
+19. That's it, you're done! Let your instructor know that you've finished the lab.
