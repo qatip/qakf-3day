@@ -66,19 +66,7 @@ kubectl create -f clusterrole.yaml
 </details>
 <br/>
 
-5. Create a rolebinding to bind the ClusterRole to the `default` service account in the `default` namespace. Again you have YAML or command line options.
-
-<details><summary>show kubectl command</summary>
-<p>
-
-```bash
-kubectl create rolebinding pod-logger-binding \
-    --clusterrole=pod-logger --serviceaccount=default:default
-```
-
-</p>
-</details>
-<br/>
+5. Create a rolebinding manifest to bind the ClusterRole to the `default` service account in the `default` namespace. 
 
 <details><summary>show YAML</summary>
 <p>
