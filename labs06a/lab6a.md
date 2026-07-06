@@ -108,7 +108,6 @@ kubectl -n webserver get pods
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  creationTimestamp: null
   labels:
     app: webserver
   name: webserver
@@ -117,29 +116,26 @@ spec:
   selector:
     matchLabels:
       app: webserver
-  strategy: {}
   template:
     metadata:
-      creationTimestamp: null
       labels:
         app: webserver
     spec:
       containers:
       - image: nginx:alpine
-## --------- new lines from here
-      securityContext:
-        runAsNonRoot: true
-        allowPrivilegeEscalation: false
-        capabilities:
-          drop: ["ALL"]
-        seccompProfile:
-          type: RuntimeDefault
-## ----------- to here  
-       name: nginx
+        name: nginx
+### -- new lines from here
+        securityContext:
+          runAsNonRoot: true
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop: ["ALL"]
+          seccompProfile:
+            type: RuntimeDefault
+### -- to here
         ports:
         - containerPort: 80
         resources: {}
-status: {}
 ```
 
 </details>
