@@ -3,45 +3,32 @@
 
 We're going to create a pod that prints all of the logs of 10 random number generator jobs.
 
-1. Examine the provided job.yaml and then create the jobs.
-
-<details><summary>show command</summary>
-<p>
+1. Examine the provided job.yaml and then create the 10 random number generator jobs.
 
 ```bash
-kubectl create -f job.yaml # use the correct YAMLfest here
+cp ~/qakf-3day/lab05/job.yaml ./job.yaml
+nano jobs.yaml
 ```
 
-</p>
-</details>
-<br/>
+``` bash
+kubectl create -f job.yaml
+```
 
 2. Create a pod named `kubectl` using the `bitnami/kubectl` image. Give it a `command` property to `sleep infinity` like we did with the busybox pod in the networking lab to keep it from completing.
-
-<details><summary>show command</summary>
-<p>
 
 ```bash
 kubectl run kubectl --image=bitnami/kubectl --command sleep infinity
 ```
-
-</p>
-</details>
 <br/>
 
 3. Now `exec -it` into the kubectl pod and run the command (with `sh -c`) that we came up with in the previous lab for getting all the pods' logs. It should fail.
-
-<details><summary>show command</summary>
-<p>
 
 ```bash
 kubectl exec -it kubectl -- \
     sh -c 'for pod in $(kubectl get pods -l=job-name=randoms -o name); do kubectl logs $pod; done'
 ```
-
-</p>
-</details>
 <br/>
+
 
 Example output:
 
