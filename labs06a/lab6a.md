@@ -24,7 +24,7 @@ kubectl create quota webserver-quota --hard=pods=5,cpu=2,memory=2G --dry-run=cli
 kubectl apply -n webserver -f ws-quota.yml
 ```
 
-4. Review the provided `NetworkPolicy` resource manifest for the webserver namespace (`solutions/lab6a/netpol_webserver.yaml`). Fill in the `from` and `ports` sections to allow traffic from the ingress namespace on port 8080. See the solution below if needed
+4. Review the provided `NetworkPolicy` resource manifest for the webserver namespace (`nano ~/qakf-3day/solutions/lab6a/netpol_webserver.yaml`). Fill in the `from` and `ports` sections to allow traffic from the ingress namespace on port 8080. See the solution below if needed
 
 <details>
 <summary>solution</summary>
