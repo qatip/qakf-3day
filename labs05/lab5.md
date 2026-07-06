@@ -333,7 +333,11 @@ kubectl run web \
 </details>
 <br/>
 
-16. Give it thirty seconds or so and then run `kubectl get pods`. You should see a `CreateContainerConfigError` and if you `describe` the pod, you'll see that the httpd image wants to run as root but you've said it can't.
+16. Give it thirty seconds or so and then run `kubectl get pods`. You should see a `CreateContainerConfigError` and if you `describe` the pod, you'll see that the httpd image wants to run as root but you've said it can't. Delete the failed pod:
+
+```bash
+kubectl delete pod web
+```
 
 <details><summary>Stretch goal - optional exercise</summary>
 <p>
