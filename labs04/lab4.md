@@ -248,7 +248,7 @@ kubectl create -f devingress.yaml
 </details>
 <br/>
 
-16. Point your web browser at *dev*.**your-ip***.sslip.io*:**ingress-nodePort**, for example in this instance it's `dev.172.17.1.10.sslip.io:31886` 
+16. Point your web browser at *dev*.**your-ip***.sslip.io*:**ingress-nodePort**, for example in this instance it's `dev.54.245.37.121.sslip.io:30139` 
 
 ![devslip](../diagrams/devslip.png)
 
