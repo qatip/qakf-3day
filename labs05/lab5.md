@@ -269,7 +269,7 @@ kubectl apply -f netpol_backend_prod.yaml
 </details>
 <br/>
 
-13. Try **cURL**ing the backend service in production. It should now fail, but the frontend service should still be able to communicate with it.
+13. Try **cURL**ing directly to the backend service in production. It should now fail, but the frontend service should still be able to communicate with it.
 
 <details><summary>show command</summary>
 <p>
@@ -311,22 +311,10 @@ spec:
     - port: 8080
 ```
 
-</p>
-</details>
-<br/>
-
-<details><summary>Stretch goal - optional exercise</summary>
-<p>
-
-15. **Optional stretch goal** create the network policies in the test namespace as well.
-
-</p>
-</details>
-<br/>
 
 ## 5.3 Pod Security
 
-16. Create an httpd pod with a `securityContext` that sets `runAsNonRoot` to `true`.
+15. Create an httpd pod with a `securityContext` that sets `runAsNonRoot` to `true`.
 
 <details><summary>show command</summary>
 <p>
@@ -341,18 +329,18 @@ kubectl run web \
 </details>
 <br/>
 
-17. Give it thirty seconds or so and then run `kubectl get pods`. You should see a `CreateContainerConfigError` and if you `describe` the pod, you'll see that the httpd image wants to run as root but you've said it can't.
+16. Give it thirty seconds or so and then run `kubectl get pods`. You should see a `CreateContainerConfigError` and if you `describe` the pod, you'll see that the httpd image wants to run as root but you've said it can't.
 
 <details><summary>Stretch goal - optional exercise</summary>
 <p>
 
-18. **Optional stretch goal** try to find a non-privileged httpd image and use that instead.
+17. **Optional stretch goal** try to find a non-privileged httpd image and use that instead.
 
 </p>
 </details>
 <br/>
 
-19. Add a `runAsNonRoot`: `true` to your frontend deployments in `development` and `production` (and `test` if you have that namespace and feel like doing it). You will need to recreate the deployments. They should be fine, because they're both listening on port 8080 and Kubernetes can tell that they don't need to run as root.
+18. Add a `runAsNonRoot`: `true` to your frontend deployments in `development` and `production` (and `test` if you have that namespace and feel like doing it). You will need to recreate the deployments. They should be fine, because they're both listening on port 8080 and Kubernetes can tell that they don't need to run as root.
 
 <details><summary>show YAML</summary>
 <p>
@@ -415,11 +403,10 @@ spec:
 <details><summary>Stretch goal - optional exercise</summary>
 <p>
 
-20. **Optional stretch goal** try the same thing with a backend deployment. The simple `runAsNonRoot` won't work in this case because Kubernetes can't tell from the container image that it doesn't need to run as root. Hint: try making it run as a specific user id.
+19. **Optional stretch goal** try the same thing with a backend deployment. The simple `runAsNonRoot` won't work in this case because Kubernetes can't tell from the container image that it doesn't need to run as root. Hint: try making it run as a specific user id.
 
 </p>
 </details>
 <br/>
 
-
-21. That's it, you're done! Let your instructor know that you've finished the lab.
+20. That's it, you're done! Let your instructor know that you've finished the lab.
