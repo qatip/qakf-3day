@@ -7,7 +7,7 @@ We're going to create a pod that prints all of the logs of 10 random number gene
 
 ```bash
 cd ~
-cp ~/qakf-3day/solutions/lab05/job.yaml ./job.yaml
+cp ~/qakf-3day/solutions/lab5/job.yaml ./job.yaml
 nano job.yaml
 ```
 
