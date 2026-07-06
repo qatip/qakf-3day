@@ -3,7 +3,7 @@
 
 We're going to create a pod that prints all of the logs of 10 random number generator jobs.
 
-1. Examine the provided job.yaml and then create the 10 random number generator jobs.
+1. Examine the provided job.yaml and then apply it to create the 10 random number generator jobs.
 
 ```bash
 cd ~
@@ -12,7 +12,7 @@ nano job.yaml
 ```
 
 ``` bash
-kubectl create -f job.yaml
+kubectl apply -f job.yaml
 ```
 
 2. Create a pod named `kubectl` using the `bitnami/kubectl` image. Give it a `command` property to `sleep infinity` like we did with the busybox pod in the networking lab to keep it from completing.
