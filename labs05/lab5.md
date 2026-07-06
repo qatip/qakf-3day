@@ -41,18 +41,7 @@ Error from server (Forbidden): pods is forbidden: User "system:serviceaccount:de
 
 The kubectl pod doesn't have permission to get pods or their logs!
 
-4. Create a clusterrole named `pod-logger` that allows `get` and `list` verbs on resources `pods` and `pods/logs`. You can create a YAMLfest to do this and then `apply` it, **or** you can do it via the command line.
-
-<details><summary>show kubectl command</summary>
-<p>
-
-```bash
-kubectl create clusterrole pod-logger --verb=get,list --resource=pods,pods/log
-```
-
-</p>
-</details>
-<br/>
+4. Create manifest ***clusterrole.yaml*** and apply it to create a cluster role named `pod-logger` that allows `get` and `list` verbs on resources `pods` and `pods/logs`. 
 
 <details><summary>show YAML</summary>
 <p>
