@@ -1,0 +1,15 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: webserver-netpol
+spec:
+  podSelector:
+    matchLabels:
+      app: webserver
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+      ...
+    ports:
+      ...
