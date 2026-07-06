@@ -15,11 +15,6 @@ nano job.yaml
 kubectl apply -f job.yaml
 ```
 
-```
-kubectl get pods -l job-name=randoms -o name | xargs -I{} kubectl logs {}
-```
-
-
 2. Create a pod named `kubectl` using the `bitnami/kubectl` image. Give it a `command` property to `sleep infinity` like we did with the busybox pod in the networking lab to keep it from completing.
 
 ```bash
@@ -42,9 +37,16 @@ Example output:
 Error from server (Forbidden): pods is forbidden: User "system:serviceaccount:default:default" cannot list resource "pods" in API group "" in the namespace "default"
 ```
 
-<br/>
-
 The kubectl pod doesn't have permission to get pods or their logs!
+
+The current user account you are using 'student' does have permissions to view logs directly:
+
+```
+kubectl get pods -l job-name=randoms -o name | xargs -I{} kubectl logs {}
+```
+
+We need to create a cluster role and assign it to the service account used within the kubectl pod
+
 
 4. Create manifest ***clusterrole.yaml*** and apply it to create a cluster role named `pod-logger` that allows `get` and `list` verbs on resources `pods` and `pods/logs`. 
 
