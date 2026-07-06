@@ -18,6 +18,9 @@ kubectl delete ingressclasses nginx
 kubectl label ns webserver pod-security.kubernetes.io/enforce=restricted
 ```
 
+> Kubernetes supports Pod Security Standards (PSS), which define three levels of security: Privileged, Baseline, and Restricted. By applying the restricted policy to a namespace, every new Pod created there is validated against a strict set of security requirements. Pods that attempt to run as root, allow privilege escalation, or omit other required security settings will be rejected before they are created.
+
+
 3. Generate a manifest for a `ResourceQuota` object and apply it to the webserver namespace:
 
 ```bash
