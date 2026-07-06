@@ -33,8 +33,10 @@ kubectl apply -n webserver -f ws-quota.yaml
 
 4. Create two network policy manifests based on exemplars in the solutions/lab6a
 
+```bash
 cp ~/qakf-3day/solutions/lab6a/netpol_webserver_original.yaml netpol_webserver.yaml
 cp ~/qakf-3day/solutions/lab6a/netpol_ingress.yaml netpol_ingress.yaml
+```
 
 5. Review the policy manifests. The webserver policy needs updating to include `from` and `ports` sections that allow traffic from the ingress namespace on port 8080 into the webserver namespace. See the solution below if needed
 
