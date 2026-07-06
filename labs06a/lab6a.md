@@ -6,14 +6,13 @@ In production Kubernetes clusters, security policies are often enforced at the n
 
 ## 6a.1 Setup the Namespaces
 
-1. Create and label the two namespaces we will be using for this lab and ensure no remnants from previous labs remain that might cause issues:
+1. Create and label the two namespaces we will be using for this lab:
 
 ```bash
 kubectl create ns webserver
 kubectl create ns ingress
 kubectl label ns webserver app=webserver
 kubectl label ns ingress app=nginx-ingress
-kubectl delete ingressclasses nginx 
 ```
 
 2. Apply a Pod Security Standard of `Restricted` to the webserver namespace:
