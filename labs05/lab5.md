@@ -177,8 +177,8 @@ kubectl expose deployment backend --port 80 --target-port 8080 --name backend -n
 
 kubectl apply -n production -f ./qakf-3day/solutions/lab4/lab4frontend.yaml
 kubectl apply -n development -f ./qakf-3day/solutions/lab4/lab4frontend.yaml
-kubectl expose deployment lab4frontend --port 80 --target-port 8080 --name frontend -n production 
-kubectl expose deployment lab4frontend --port 80 --target-port 8080 --name frontend -n development
+kubectl expose deployment frontend --port 80 --target-port 8080 --name frontend -n production 
+kubectl expose deployment frontend --port 80 --target-port 8080 --name frontend -n development
 
 helm install ingress-nginx ingress-nginx \
   --repo https://kubernetes.github.io/ingress-nginx \
