@@ -246,12 +246,42 @@ This is the long arm of our pod security standard again. The PSS requires that w
 15. [15]Edit the image and containerPort used by the deployment like so:
 
 ```yaml
-# rest of yaml omitted
-containers:
-- image: nginxinc/nginx-unprivileged
-  ports:
-  - containerPort: 8080
-# rest of yaml omitted
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: webserver
+  name: webserver
+spec:
+  replicas: 10
+  selector:
+    matchLabels:
+      app: webserver
+  template:
+    metadata:
+      labels:
+        app: webserver
+    spec:
+      containers:
+      - name: nginx
+        image: nginxinc/nginx-unprivileged
+        securityContext:
+          runAsNonRoot: true
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          seccompProfile:
+            type: RuntimeDefault
+        ports:
+        - containerPort: 8080
+        resources:
+          requests:
+            cpu: 100m
+            memory: 100Mi
+          limits:
+            cpu: 100m
+            memory: 100Mi
 ```
 
 16. [16]Apply the manifest again: `kubectl -n webserver apply -f deploy.yaml`. Confirm that there are now 5 running pods.
