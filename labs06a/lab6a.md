@@ -140,7 +140,7 @@ spec:
 
 </details>
 
-10. [10]Time to see if our deployment is working now. Reapply the manifest, then get the pods in the webserver namespace:
+10. Time to see if our deployment is working now. Reapply the manifest, then get the pods in the webserver namespace:
 
 ```bash
 kubectl -n webserver apply -f deploy.yaml
@@ -148,7 +148,7 @@ kubectl -n webserver get pods
 ```
 There are still no pods found. Time to begin some deeper troubleshooting. 
 
-11. [11]Begin by describing the deployment:
+11. Begin by describing the deployment:
 
 ```bash
 kubectl -n webserver describe deploy webserver
@@ -179,21 +179,48 @@ This tells us several key things. Firstly, that the deployment was successfully 
 kubectl -n webserver describe rs webserver-xxxxxxxxxx # replace with the name of your replicaset
 ```
 
-12. [12]Reviewing the events for the ReplicaSet tells us what the issue is - that our `ResourceQuota` applies CPU and memory limits to the webserver namespace, meaning we have to provide this information to allow validation against the policy. Edit the `resources` stanza of your manifest to set requests and limits of 100m cpu/100Mi memory. See the solution below if needed
+12. Reviewing the events for the ReplicaSet tells us what the issue is - that our `ResourceQuota` applies CPU and memory limits to the webserver namespace, meaning we have to provide this information to allow validation against the policy. Edit the `resources` stanza of your manifest to set requests and limits of 100m cpu/100Mi memory. See the solution below if needed
 
 <details>
 <summary>solution</summary>
 
 ```yaml
-# rest of yaml omitted
-resources:
-  requests:
-    cpu: 100m
-    memory: 100Mi
-  limits:
-    cpu: 100m
-    memory: 100Mi
-# rest of yaml omitted
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: webserver
+  name: webserver
+spec:
+  replicas: 10
+  selector:
+    matchLabels:
+      app: webserver
+  template:
+    metadata:
+      labels:
+        app: webserver
+    spec:
+      containers:
+      - image: nginx:alpine
+        name: nginx
+        securityContext:
+          runAsNonRoot: true
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop: ["ALL"]
+          seccompProfile:
+            type: RuntimeDefault
+        ports:
+        - containerPort: 80
+## --- replace resources{} with ...
+        resources:
+          requests:
+            cpu: 100m
+            memory: 100Mi
+          limits:
+            cpu: 100m
+            memory: 100Mi
 ```
 
 </details>
