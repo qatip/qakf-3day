@@ -66,7 +66,7 @@ kubectl create -f clusterrole.yaml
 </details>
 <br/>
 
-5. Create a rolebinding manifest to bind the ClusterRole to the `default` service account in the `default` namespace. 
+5. Create and apply rolebinding manifest to bind the ClusterRole to the `default` service account in the `default` namespace. 
 
 <details><summary>show YAML</summary>
 <p>
@@ -89,7 +89,7 @@ subjects:
 ```
 
 ```bash
-kubectl create -f rolebinding.yaml
+kubectl apply -f rolebinding.yaml
 ```
 
 </p>
