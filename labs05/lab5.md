@@ -437,6 +437,8 @@ kubectl delete namespace development
 kubectl delete jobs randoms
 kubectl delete rolebindings pod-logger-binding
 kubectl delete clusterrole pod-logger
+kubectl delete pod kubectl
+kubectl delete pod web
 ```
 
 20. That's it, you're done! Let your instructor know that you've finished the lab.
