@@ -160,7 +160,7 @@ frontend   ClusterIP   10.104.176.195   <none>        80/TCP    5d17h
 ***note***
 If you have not completed lab4 in this current session then you will get error messages stating 'No resources found ....'
 
-Run the following commands to reinstate assumed namespace/deployments/services/configmaps/secrets and controller resources...
+Run the following commands to reinstate assumed namespace/deployments/services/configmaps/secrets resources...
 
 ```bash
 kubectl create namespace development || true
@@ -179,21 +179,7 @@ kubectl apply -n production -f ./qakf-3day/solutions/lab4/lab4frontend.yaml
 kubectl apply -n development -f ./qakf-3day/solutions/lab4/lab4frontend.yaml
 kubectl expose deployment frontend --port 80 --target-port 8080 --name frontend -n production 
 kubectl expose deployment frontend --port 80 --target-port 8080 --name frontend -n development
-
-helm install ingress-nginx ingress-nginx \
-  --repo https://kubernetes.github.io/ingress-nginx \
-  --namespace ingress-nginx --create-namespace
-
-
-
 ```
-
-
-
-
-
-
-
 
 8. Create a netpol that allows all traffic on port 8080 to pods with an `app` label with a value of `frontend`. But check that your pods actually have a `label` of `frontend` and not `lab3frontend` or `lab4frontend`. If they do, you may need to tweak things. Either modify the deployment manifest and recreate it, or modify the pod selector in the netpol.
 
