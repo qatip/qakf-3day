@@ -131,17 +131,10 @@ Example output:
 
 7. **cURL** the frontend service and the backend service in each ns. You'll need to `get services` in both namespaces and then **cURL** their ClusterIP addresses.
 
-<details><summary>show command</summary>
-<p>
-
 ```bash
 kubectl get service -n production
 kubectl get service -n development
 ```
-
-</p>
-</details>
-<br/>
 
 Example output:
 
@@ -179,6 +172,9 @@ kubectl apply -n production -f ./qakf-3day/solutions/lab4/lab4frontend.yaml
 kubectl apply -n development -f ./qakf-3day/solutions/lab4/lab4frontend.yaml
 kubectl expose deployment frontend --port 80 --target-port 8080 --name frontend -n production 
 kubectl expose deployment frontend --port 80 --target-port 8080 --name frontend -n development
+
+kubectl get service -n production
+kubectl get service -n development
 ```
 
 8. Create a netpol that allows all traffic on port 8080 to pods with an `app` label with a value of `frontend`. But check that your pods actually have a `label` of `frontend` and not `lab3frontend` or `lab4frontend`. If they do, you may need to tweak things. Either modify the deployment manifest and recreate it, or modify the pod selector in the netpol.
