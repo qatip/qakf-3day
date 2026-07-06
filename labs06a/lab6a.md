@@ -55,7 +55,7 @@ kubectl -n webserver apply -f solutions/lab6a/netpol_webserver.yaml
 6. Use helm to deploy the Nginx ingress controller into the ingress namespace:
 
 ```bash
-helm -n ingress install nginx-ingress oci://ghcr.io/nginx/charts/nginx-ingress --version 2.5.2 --set controller.kind=DaemonSet
+helm -n ingress install nginx-ingress oci://ghcr.io/nginx/charts/nginx-ingress --version 2.5.2 --set controller.kind=daemonset
 ```
 
 ## 6a.2 Deploy the Webserver
