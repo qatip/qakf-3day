@@ -15,6 +15,11 @@ nano job.yaml
 kubectl apply -f job.yaml
 ```
 
+```
+kubectl get pods -l job-name=randoms -o name | xargs -I{} kubectl logs {}
+```
+
+
 2. Create a pod named `kubectl` using the `bitnami/kubectl` image. Give it a `command` property to `sleep infinity` like we did with the busybox pod in the networking lab to keep it from completing.
 
 ```bash
