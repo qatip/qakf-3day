@@ -2,7 +2,7 @@
 
 ## 4.0 Before you begin
 
-Recreate the following resources ahead of starting this lab:
+Run the following to ensure the lab environment is in a 'known' state, ignoring any error messages:
 
 ```bash
 kubectl create namespace development || true

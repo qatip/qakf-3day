@@ -16,7 +16,7 @@ rm *.yaml
 
 ### Task 1 - explore emptyDirs
 
-1. Create a pod manifest using the `abhirockzz/kvstore` image use the `dry-run` and `-o yaml` technique to create a file called `lab3kv.yaml`. This is an image that runs a simple key/value store that uses the file system to store values.
+1. Create a pod manifest using the `abhirockzz/kvstore` image. Use the `dry-run` and `-o yaml` technique to create a file called `lab3kv.yaml`. This is an image that runs a simple key/value store that uses the file system to store values.
 
 ```bash
 kubectl run kvstore --image=abhirockzz/kvstore --dry-run=client -o yaml > lab3kv.yaml
@@ -60,7 +60,7 @@ Failed to create file /data/name due to --- open /data/name: no such file or dir
 kubectl delete pod kvstore
 ```
 
-5. Modify the auto-created manifest file lab3kv.yaml. Add a `volume` named `data-volume` of the `emptyDir` type and add a `volumeMount` to the container definition that mounts `data-volume` at `/data`
+5. Modify the auto-created manifest **lab3kv.yaml**. Add a `volume` named `data-volume` of the `emptyDir` type and add a `volumeMount` to the container definition that mounts `data-volume` at `/data`
 
 lab3kv.yaml:
 
@@ -203,7 +203,7 @@ kubectl create configmap homepage --from-file ~/index.html
 cp lab3web.yaml lab3web2.yaml
 ```
 
-18. In ***lab3web2.yaml***, add a configMap volume, using the newly-created homepage configmap. Add a volumeMount to the container with a mountPath of /usr/local/apache2/htdocs. [NOTE: We could add additional files to the configmap and they'd be mounted in the same directory]
+18. In ***lab3web2.yaml***, add a configMap volume, using the newly-created homepage configmap. Add a volumeMount to the container with a mountPath of /usr/local/apache2/htdocs. 
 
 ```
     spec:
