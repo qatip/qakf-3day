@@ -1,6 +1,19 @@
 # Lab 3 - Volumes and Data
 ## 3.1 Volume mounts
 
+### Task 0 - lab reset
+
+Run the following to ensure the lab environment is in a 'known' state, ignoring any error messages:
+
+```bash
+cd ~
+kubectl delete deployment lab2backend
+kubectl delete namespaces production
+kubectl delete namespaces development
+rm *.yaml
+```
+
+
 ### Task 1 - explore emptyDirs
 
 1. Create a pod manifest using the `abhirockzz/kvstore` image use the `dry-run` and `-o yaml` technique to create a file called `lab3kv.yaml`. This is an image that runs a simple key/value store that uses the file system to store values.
@@ -30,7 +43,7 @@ test  1/1    Running  0          22m     192.168.230.21   k8s-worker-1
 3. Try to put some data into the store. It will fail.
 
 ```bash
- curl {pod-ip}.21:8080/save -d 'name=Nefertiti'
+ curl {pod-ip}:8080/save -d 'name=Nefertiti'
 ```
 
 Example output:
@@ -104,7 +117,7 @@ Saved value Nefertiti to /data/name
 
 <br/>
 
-8. Feel free to add more key/value pairs and then try reading the data.
+8. Now try reading the data.
 
 ```bash
  curl {pod-ip}:8080/read/name
@@ -240,14 +253,13 @@ kubectl delete svc lab3web
 kubectl delete configmaps homepage  
 ```
 
-
 The simple frontend application has a placeholder for a `COLOUR` environment variable. We're going to add different values for that in our different namespaces using ConfigMaps.
 
-20. Create a ConfigMap in both the development and production namespaces (creating if necessary). Name the configmap `settings` and create a `colour` setting from a literal value with different values in each namespace. We will use Purple for Development and Green for Production.
+20. Create a ConfigMap in both development and production namespaces. Name the configmap `settings` and create a `colour` setting from a literal value with different values in each namespace. We will use Purple for Development and Green for Production.
 
 ```bash
-kubectl create namespace development || true
-kubectl create namespace production || true
+kubectl create namespace development 
+kubectl create namespace production 
 kubectl create configmap settings --from-literal=colour=purple --namespace development
 kubectl create configmap settings --from-literal=colour=green --namespace production
 ```
@@ -259,7 +271,7 @@ cp ./qakf-3day/solutions/lab2/lab2frontend_stretch.yaml lab3frontend.yaml && \
 sed -i 's/lab2/lab3/g' lab3frontend.yaml
 ```
 
-21. Edit the newly created lab3frontend.yaml file to add another `env` setting named `COLOUR` that gets its value from the `configMapKeyRef` we just created and wiyh a `key` of `colour`. 
+21. Edit the newly created **lab3frontend.yaml** file to add another `env` setting named `COLOUR` that gets its value from the `configMapKeyRef` we just created and with a `key` of `colour`. 
 
 ```yaml
 apiVersion: apps/v1
@@ -302,7 +314,7 @@ spec:
               key: colour
 ```
 
-22. Create a sfe deployment in both the production and development namespaces. You did this in the second lab.
+22. Create a front end deployment in both the production and development namespaces. You did this in the second lab.
 
 ```bash
 kubectl apply -f lab3frontend.yaml -n development
@@ -341,7 +353,7 @@ kubectl create secret generic secrets --from-literal password=DevSecret --namesp
 kubectl create secret generic secrets --from-literal password=ProdSecret --namespace production
 ```
 
-21. Copy the frontend deployment manifest lab3frontend.yaml as lab3frontend2.yaml:
+21. Duplicate the frontend deployment manifest lab3frontend.yaml as **lab3frontend2**.yaml:
 
 ```
 cp lab3frontend.yaml lab3frontend2.yaml

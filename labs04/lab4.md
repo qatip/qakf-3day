@@ -2,6 +2,8 @@
 
 ## 4.0 Before you begin
 
+Recreate the following resources ahead of starting this lab:
+
 ```bash
 kubectl create namespace development || true
 kubectl create namespace production || true
