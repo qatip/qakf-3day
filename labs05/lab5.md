@@ -33,7 +33,7 @@ You can see it by running: **kubectl get serviceaccounts**
 
 You can also confirm which ServiceAccount a Pod is using:
 
-kubectl get pod {pod-name} -o jsonpath='{.spec.serviceAccountName}'
+**kubectl get pod {pod-name} -o jsonpath='{.spec.serviceAccountName}'**
 
 What permissions does the default ServiceAccount have? Almost none.
 
