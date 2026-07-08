@@ -3,12 +3,11 @@
 
 We're going to create and run a job manifest that creates 10 pods, each of which ranomly generates a number. The aim eventually is to look into the logs they produce:
 
-1. Examine the provided job.yaml and then apply it to create the 10 random number generator pods.
+1. Create and examine **job.yaml** before applying it to create the 10 random number generator pods.
 
 ```bash
 cd ~
 cp ~/qakf-3day/solutions/lab5/job.yaml ./job.yaml
-nano job.yaml
 ```
 
 ``` bash
