@@ -1,5 +1,28 @@
 # Lab 5 - Security
 
+# Lab 5.0 Lab Setup
+
+Run the following to ensure the lab environment is in a 'known' state, ignoring any error messages:
+
+```bash
+kubectl create namespace development || true
+kubectl create namespace production || true
+kubectl create configmap settings --from-literal=colour=purple --namespace development || true
+kubectl create configmap settings --from-literal=colour=green --namespace production || true
+kubectl create secret generic secrets --from-literal password=DevSecret --namespace development || true
+kubectl create secret generic secrets --from-literal password=ProdSecret --namespace production || true
+
+kubectl create deploy backend --image=public.ecr.aws/qa-wfl/qa-wfl/qakf/sbe:v1 -n production 
+kubectl create deploy backend --image=public.ecr.aws/qa-wfl/qa-wfl/qakf/sbe:v2 -n development
+kubectl expose deployment backend --port 80 --target-port 8080 --name backend -n production 
+kubectl expose deployment backend --port 80 --target-port 8080 --name backend -n development
+
+kubectl apply -n production -f ./qakf-3day/solutions/lab4/lab4frontend.yaml
+kubectl apply -n development -f ./qakf-3day/solutions/lab4/lab4frontend.yaml
+kubectl expose deployment frontend --port 80 --target-port 8080 --name frontend -n production 
+kubectl expose deployment frontend --port 80 --target-port 8080 --name frontend -n development
+```
+
 ## 5.1 RBAC
 
 **Behind the Scenes – Service Accounts**
