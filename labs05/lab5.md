@@ -1,7 +1,56 @@
 # Lab 5 - Security
+
 ## 5.1 RBAC
 
-We're going to create and run a job manifest that creates 10 pods, each of which ranomly generates a number. The aim eventually is to look into the logs they produce:
+**Behind the Scenes – Service Accounts**
+
+Every Kubernetes namespace automatically contains a ServiceAccount named **default**. Unless you explicitly specify a different service account in a Pod or Deployment manifest, Kubernetes assigns this default account to every Pod created in that namespace.
+
+You can see it by running: **kubectl get serviceaccounts**
+
+Example output:
+
+NAME      SECRETS   AGE
+default   0         2d
+
+You can also confirm which ServiceAccount a Pod is using:
+
+kubectl get pod {pod-name} -o jsonpath='{.spec.serviceAccountName}'
+
+Output: default
+
+What permissions does the default ServiceAccount have?
+
+Almost none.
+
+Modern Kubernetes clusters follow the principle of least privilege, meaning the default ServiceAccount is not automatically granted permission to list Pods, read Secrets, retrieve logs, or modify cluster resources.
+
+In this exercise you will:
+
+Create a ClusterRole that allows Pods and Pod logs to be read.
+Bind that role to the default ServiceAccount using a RoleBinding.
+
+***Can I create additional ServiceAccounts?***
+
+Absolutely — and in production environments you almost always should.
+
+kubectl create serviceaccount logger
+
+You can then tell a Pod or Deployment to use it:
+
+spec:
+  serviceAccountName: logger
+
+This allows different applications to have different permissions. For example:
+
+frontend → read ConfigMaps only
+backup → read PersistentVolumes
+monitoring → read Pod logs
+deployment-controller → create and delete Pods
+
+Giving every workload its own ServiceAccount is considered a Kubernetes security best practice because it follows the principle of least privilege.
+
+We're going to start by creating and running a job manifest that creates 10 pods, each of which randomly generates a number. The aim eventually is to use another pod to look at the logs these 10 pods create (showing the number generated):
 
 1. Create and examine **job.yaml** before applying it to create the 10 random number generator pods.
 
@@ -38,13 +87,13 @@ Error from server (Forbidden): pods is forbidden: User "system:serviceaccount:de
 
 The kubectl pod doesn't have permission to get pods or their logs!
 
-The current user account you are using 'student' does have permissions to view logs directly:
+The current user account you are using 'student' does have permissions to view logs directly though:
 
 ```
 kubectl get pods -l job-name=randoms -o name | xargs -I{} kubectl logs {}
 ```
 
-We need to create a cluster role and assign it to the service account used within the kubectl pod
+We need to create a cluster role and assign it to the service account used within the kubectl pod that allows it to retrieve logs.
 
 
 4. Create manifest ***clusterrole.yaml*** and apply it to create a cluster role named `pod-logger` that allows `get` and `list` verbs on resources `pods` and `pods/logs`. 
