@@ -11,6 +11,10 @@ kubectl create configmap settings --from-literal=colour=purple --namespace devel
 kubectl create configmap settings --from-literal=colour=green --namespace production || true
 kubectl create secret generic secrets --from-literal password=DevSecret --namespace development || true
 kubectl create secret generic secrets --from-literal password=ProdSecret --namespace production || true
+kubectl delete deploy lab3frontend -n production
+kubectl delete deploy lab3frontend -n development
+kubectl delete service lab3frontend -n production
+kubectl delete service lab3frontend -n development
 ```
 
 
@@ -122,7 +126,7 @@ lab4frontend-f47f6cf46-xfr92   1/1     Running   0          3h49m   10.0.1.147  
 
 7. ***curl {ip}:8080***, using each frontend pods' IP address in turn. You should see a v2 message in the development namespace and a v1 message in production. Note that this is all internal as we have not yet exposed the frontends.
 
-Example output:
+Example output (partial):
 
 ```
     <p>Call to backend service returned: <em>I am the backend service. I&#39;m version 1!
@@ -250,7 +254,7 @@ kubectl create -f devingress.yaml
 </details>
 <br/>
 
-16. Point your web browser at *dev*.**your-ip***.sslip.io*:**ingress-nodePort**, for example in this instance it's `dev.54.245.37.121.sslip.io:30139` 
+16. Point your web browser at *dev*.**your-ip**.sslip.io:**ingress-nodePort**, for example in this instance it's `dev.54.245.37.121.sslip.io:30139` 
 
 ![devslip](../diagrams/devslip.png)
 
