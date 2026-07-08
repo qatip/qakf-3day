@@ -18,25 +18,24 @@ Modern Kubernetes clusters follow the principle of least privilege, meaning the 
 
 In this exercise you will:
 
-Create a ClusterRole that allows Pods and Pod logs to be read.
-Bind that role to the default ServiceAccount using a RoleBinding.
+Create a ClusterRole that allows Pods and Pod logs to be read and bind that role to the default ServiceAccount using a RoleBinding.
 
 ***Can I create additional ServiceAccounts?***
 
 Absolutely — and in production environments you almost always should.
 
-kubectl create serviceaccount logger
+kubectl create serviceaccount {svc account name}
 
 You can then tell a Pod or Deployment to use it:
 
 spec:
-  serviceAccountName: logger
+  serviceAccountName: {svc account name}
 
 This allows different applications to have different permissions. For example:
 
-frontend → read ConfigMaps only
-backup → read PersistentVolumes
-monitoring → read Pod logs
+frontend              → read ConfigMaps only
+backup                → read PersistentVolumes
+monitoring            → read Pod logs
 deployment-controller → create and delete Pods
 
 Giving every workload its own ServiceAccount is considered a Kubernetes security best practice because it follows the principle of least privilege.
