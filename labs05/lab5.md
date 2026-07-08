@@ -8,16 +8,9 @@ Every Kubernetes namespace automatically contains a ServiceAccount named **defau
 
 You can see it by running: **kubectl get serviceaccounts**
 
-Example output:
-
-NAME      SECRETS   AGE
-default   0         2d
-
 You can also confirm which ServiceAccount a Pod is using:
 
 kubectl get pod {pod-name} -o jsonpath='{.spec.serviceAccountName}'
-
-Output: default
 
 What permissions does the default ServiceAccount have?
 
