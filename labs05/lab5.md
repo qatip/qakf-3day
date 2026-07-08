@@ -12,9 +12,7 @@ You can also confirm which ServiceAccount a Pod is using:
 
 kubectl get pod {pod-name} -o jsonpath='{.spec.serviceAccountName}'
 
-What permissions does the default ServiceAccount have?
-
-Almost none.
+What permissions does the default ServiceAccount have? Almost none.
 
 Modern Kubernetes clusters follow the principle of least privilege, meaning the default ServiceAccount is not automatically granted permission to list Pods, read Secrets, retrieve logs, or modify cluster resources.
 
