@@ -34,9 +34,13 @@ spec:
 This allows different applications to have different permissions. For example:
 
 frontend              → read ConfigMaps only
+
 backup                → read PersistentVolumes
+
 monitoring            → read Pod logs
+
 deployment-controller → create and delete Pods
+
 
 Giving every workload its own ServiceAccount is considered a Kubernetes security best practice because it follows the principle of least privilege.
 
