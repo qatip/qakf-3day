@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: webserver
+  name: webserver
+spec:
+
+  # =====================================================
+  # BEGIN CHANGE - Lab 6a.2 Phase 6
+  #
+  # Replace:
+  #
+  # replicas: 10
+  #
+  # with:
+  #
+  # replicas: 5
+  #
+  # The namespace ResourceQuota allows a maximum of five Pods.
+  # =====================================================
+  replicas: 5
+  # =====================================================
+  # END CHANGE - Lab 6a.2 Phase 6
+  # =====================================================
+
+  selector:
+    matchLabels:
+      app: webserver
+  template:
+    metadata:
+      labels:
+        app: webserver
+    spec:
+      containers:
+      - image: nginxinc/nginx-unprivileged
+        name: nginx
+        securityContext:
+          runAsNonRoot: true
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          seccompProfile:
+            type: RuntimeDefault
+        ports:
+        - containerPort: 8080
+        resources:
+          requests:
+            cpu: 100m
+            memory: 100Mi
+          limits:
+            cpu: 100m
+            memory: 100Mi
