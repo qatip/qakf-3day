@@ -4,7 +4,7 @@ The next series of labs builds a completely new Kubernetes platform from scratch
 
 Run the following cleanup commands to remove the resources created during this exercise before continuing to Lab 6a.1.
 
-*** Remove Previous Lab Resources ***
+***Remove Previous Lab Resources***
 
 ```bash
 kubectl delete namespace webserver --ignore-not-found=true
