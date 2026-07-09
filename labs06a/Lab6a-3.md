@@ -85,11 +85,11 @@ webserver   5/5     5            5
 
 The webserver Service should be listening on port `8080`.
 
-Confirm that the NGINX Ingress Controller is running.
+Reconfigure the NGINX Ingress Controller:
 
 ```bash
-kubectl get pods -n ingress
-kubectl get svc -n ingress
+kubectl delete networkpolicy ingress-netpol -n ingress
+kubectl rollout restart deployment nginx-ingress-controller -n ingress
 ```
 
 ---
