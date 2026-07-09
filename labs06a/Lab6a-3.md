@@ -1,5 +1,8 @@
 # Lab 6a.3 – Publishing and Troubleshooting a Governed Application
 
+
+
+
 ## Learning Objectives
 
 By the end of this lab you will be able to:
