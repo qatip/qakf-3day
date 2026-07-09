@@ -160,7 +160,7 @@ The Pod Security Admission controller evaluates every new Pod before it is creat
 
 Clusters have finite CPU and memory resources. ResourceQuotas prevent one namespace from consuming more than its fair share.
 
-Create the quota:
+Create the quota, noting that it is limiting cpu, memory and pod count:
 
 ```bash
 kubectl create quota webserver-quota \

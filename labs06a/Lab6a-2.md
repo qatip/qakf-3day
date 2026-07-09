@@ -122,7 +122,7 @@ Review the Deployment events.
 
 You should discover that the Restricted Pod Security Standard has rejected the Pod specification.
 
-Add the required container `securityContext` and reapply the manifest.
+Add the required container `securityContext` to ***deploy.yaml*** and reapply the manifest.
 
 ```yaml
 apiVersion: apps/v1
@@ -254,6 +254,7 @@ spec:
         # =====================================================
         # END REPLACEMENT - Lab 6a.2 Phase 4
         # =====================================================
+status: {}
 ```
 
 Apply the Deployment again.
@@ -275,23 +276,67 @@ ResourceQuotas ensure that every workload declares these values before consuming
 
 # Phase 5 – Resolve the Image Problem
 
-If Pods are now created but fail to start, investigate one of them.
+Some pods are now created but fail to start:
 
 ```bash
-kubectl describe pod <pod-name> -n webserver
+kubectl get pods -n webserver 
 ```
 
 The standard `nginx:alpine` image expects to run as root, conflicting with the namespace security policy.
 
-Replace it with:
+Update deploy.yaml and replace the current image, also update the container port from 80 to 8080:
 
 ```yaml
-image: nginxinc/nginx-unprivileged
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: webserver
+  name: webserver
+spec:
+  replicas: 10
+  selector:
+    matchLabels:
+      app: webserver
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: webserver
+    spec:
+      containers:
+      - image: nginxinc/nginx-unprivileged ## <<<<<<<<<<<<<<<<
+        name: nginx
+        securityContext:
+          runAsNonRoot: true
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          seccompProfile:
+            type: RuntimeDefault
+        ports:
+        - containerPort: 8080 ## <<<<<<<<<<<<<<<<<<<<
+        resources:
+          requests:
+            cpu: 100m
+            memory: 100Mi
+          limits:
+            cpu: 100m
+            memory: 100Mi
+#        resources: {}
+status: {}
 ```
-
-Update the container port to **8080**.
+....
 
 Reapply the Deployment.
+
+``` bash
+kubectl delete deployment webserver -n webserver
+kubectl apply -n webserver -f deploy.yaml
+```
 
 ### Behind the Scenes
 
