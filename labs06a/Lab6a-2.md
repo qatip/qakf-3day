@@ -125,17 +125,56 @@ You should discover that the Restricted Pod Security Standard has rejected the P
 Add the required container `securityContext` and reapply the manifest.
 
 ```yaml
-securityContext:
-  runAsNonRoot: true
-  allowPrivilegeEscalation: false
-  capabilities:
-    drop:
-    - ALL
-  seccompProfile:
-    type: RuntimeDefault
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: webserver
+  name: webserver
+spec:
+  replicas: 10
+  selector:
+    matchLabels:
+      app: webserver
+  template:
+    metadata:
+      labels:
+        app: webserver
+    spec:
+      containers:
+      - image: nginx:alpine
+        name: nginx
+
+        # =====================================================
+        # BEGIN ADDITION - Lab 6a.2 Phase 3
+        #
+        # Add a container securityContext so the Pod can satisfy
+        # the Restricted Pod Security Standard.
+        # =====================================================
+        securityContext:
+          runAsNonRoot: true
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          seccompProfile:
+            type: RuntimeDefault
+        # =====================================================
+        # END ADDITION - Lab 6a.2 Phase 3
+        # =====================================================
+
+        ports:
+        - containerPort: 80
+        resources: {}
+
 ```
 
 Verify the outcome again.
+
+```bash
+kubectl apply -n webserver -f deploy.yaml
+```
+
 
 ### Behind the Scenes
 
