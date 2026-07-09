@@ -171,10 +171,10 @@ spec:
 
 Verify the outcome again.
 
-```bash
+``` bash
+kubectl delete deployment webserver -n webserver
 kubectl apply -n webserver -f deploy.yaml
 ```
-
 
 ### Behind the Scenes
 
@@ -258,6 +258,11 @@ spec:
 
 Apply the Deployment again.
 
+``` bash
+kubectl delete deployment webserver -n webserver
+kubectl apply -n webserver -f deploy.yaml
+```
+
 ### Behind the Scenes
 
 Requests influence scheduling.
@@ -296,6 +301,12 @@ Container security depends on both the Kubernetes configuration **and** the cont
 
 # Phase 6 – Understand the Replica Count
 
+``` bash
+kubectl delete deployment webserver -n webserver
+kubectl apply -n webserver -f deploy.yaml
+kubectl describe rs -n webserver
+```
+
 Your Pods should now start successfully, but you may only see five replicas.
 
 Investigate:
@@ -314,6 +325,12 @@ replicas: 5
 ```
 
 Apply the Deployment one final time.
+
+``` bash
+kubectl delete deployment webserver -n webserver
+kubectl apply -n webserver -f deploy.yaml
+kubectl describe rs -n webserver
+```
 
 ---
 
