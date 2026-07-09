@@ -221,11 +221,10 @@ spec:
 ## -----------------------------
 ```
 
-Apply the policies:
+Apply the webserver policy:
 
 ```bash
 kubectl apply -n webserver -f netpol_webserver.yaml
-kubectl apply -n ingress -f netpol_ingress.yaml
 ```
 
 Verify:
