@@ -186,7 +186,14 @@ Instead, the Admission Controller simply accepts or rejects it. Responsibility f
 
 # Phase 4 – Resolve ResourceQuota Failures
 
-If Pods are still not appearing, investigate the ReplicaSet.
+``` bash
+kubectl get deployments.apps -n webserver 
+```
+
+None of the 10 pods have been deployed !!!
+
+
+Investigate the ReplicaSet.
 
 ```bash
 kubectl describe rs -n webserver
@@ -194,16 +201,59 @@ kubectl describe rs -n webserver
 
 The events should indicate that the namespace ResourceQuota requires CPU and memory values.
 
-Replace the empty resources block with:
+Update deploy.yaml so that the deployment complies with requirements:
 
 ```yaml
-resources:
-  requests:
-    cpu: 100m
-    memory: 100Mi
-  limits:
-    cpu: 100m
-    memory: 100Mi
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: webserver
+  name: webserver
+spec:
+  replicas: 10
+  selector:
+    matchLabels:
+      app: webserver
+  template:
+    metadata:
+      labels:
+        app: webserver
+    spec:
+      containers:
+      - image: nginx:alpine
+        name: nginx
+        securityContext:
+          runAsNonRoot: true
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          seccompProfile:
+            type: RuntimeDefault
+        ports:
+        - containerPort: 80
+
+        # =====================================================
+        # BEGIN REPLACEMENT - Lab 6a.2 Phase 4
+        #
+        # Replace:
+        #
+        # resources: {}
+        #
+        # with explicit CPU and memory requests and limits.
+        # This allows the Pod to satisfy the namespace ResourceQuota.
+        # =====================================================
+        resources:
+          requests:
+            cpu: 100m
+            memory: 100Mi
+          limits:
+            cpu: 100m
+            memory: 100Mi
+        # =====================================================
+        # END REPLACEMENT - Lab 6a.2 Phase 4
+        # =====================================================
 ```
 
 Apply the Deployment again.
