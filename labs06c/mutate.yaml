@@ -1,0 +1,21 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: add-managed-label
+
+spec:
+  background: true
+
+  rules:
+    - name: add-managed-by-label
+      match:
+        any:
+          - resources:
+              kinds:
+                - Deployment
+
+      mutate:
+        patchStrategicMerge:
+          metadata:
+            labels:
+              app.kubernetes.io/managed-by: kyverno

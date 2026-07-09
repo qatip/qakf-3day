@@ -1,0 +1,19 @@
+apiVersion: kyverno.io/v2
+kind: CleanupPolicy
+metadata:
+  name: delete-completed-jobs
+
+spec:
+  match:
+    any:
+      - resources:
+          kinds:
+            - Job
+
+  conditions:
+    any:
+      - key: "{{ target.status.succeeded }}"
+        operator: Equals
+        value: 1
+
+  schedule: "*/2 * * * *"

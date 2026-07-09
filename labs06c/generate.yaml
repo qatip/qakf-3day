@@ -1,0 +1,33 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: namespace-default-config
+
+spec:
+  background: true
+
+  rules:
+    - name: generate-default-config
+      match:
+        any:
+          - resources:
+              kinds:
+                - Namespace
+
+      generate:
+        synchronize: true
+        apiVersion: v1
+        kind: ConfigMap
+        name: default-config
+        namespace: "{{ request.object.metadata.name }}"
+
+        data:
+          metadata:
+            labels:
+              generated-by: kyverno
+
+          data:
+            application.properties: |
+              environment=development
+              logLevel=INFO
+              supportEmail=platform@example.com
