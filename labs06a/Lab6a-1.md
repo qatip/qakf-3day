@@ -196,7 +196,30 @@ cp ~/qakf-3day/solutions/lab6a/netpol_webserver1.yaml netpol_webserver.yaml
 cp ~/qakf-3day/solutions/lab6a/netpol_ingress.yaml netpol_ingress.yaml
 ```
 
-Edit **netpol_webserver.yaml** so that only traffic from the **ingress** namespace is permitted on TCP port **8080**.
+Use nano to edit **netpol_webserver.yaml** so that only traffic from the **ingress** namespace is permitted on TCP port **8080**...
+
+``` bash
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: webserver-netpol
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+## ------ add these 3 lines ----
+    - namespaceSelector:
+        matchLabels:
+          app: nginx-ingress
+## -----------------------------
+    ports:
+## ------ add these 2 lines ----
+    - protocol: TCP
+      port: 8080
+## -----------------------------
+```
 
 Apply the policies:
 
