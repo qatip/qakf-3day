@@ -347,8 +347,6 @@ Container security depends on both the Kubernetes configuration **and** the cont
 # Phase 6 – Understand the Replica Count
 
 ``` bash
-kubectl delete deployment webserver -n webserver
-kubectl apply -n webserver -f deploy.yaml
 kubectl describe rs -n webserver
 ```
 
