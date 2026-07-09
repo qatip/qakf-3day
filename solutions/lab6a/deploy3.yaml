@@ -21,12 +21,23 @@ spec:
           runAsNonRoot: true
           allowPrivilegeEscalation: false
           capabilities:
-            drop: ["ALL"]
+            drop:
+            - ALL
           seccompProfile:
             type: RuntimeDefault
         ports:
         - containerPort: 80
-## --- replace resources{} with ...
+
+        # =====================================================
+        # BEGIN REPLACEMENT - Lab 6a.2 Phase 4
+        #
+        # Replace:
+        #
+        # resources: {}
+        #
+        # with explicit CPU and memory requests and limits.
+        # This allows the Pod to satisfy the namespace ResourceQuota.
+        # =====================================================
         resources:
           requests:
             cpu: 100m
@@ -34,3 +45,6 @@ spec:
           limits:
             cpu: 100m
             memory: 100Mi
+        # =====================================================
+        # END REPLACEMENT - Lab 6a.2 Phase 4
+        # =====================================================

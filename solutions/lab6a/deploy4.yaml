@@ -15,17 +15,50 @@ spec:
         app: webserver
     spec:
       containers:
-      - image: nginxinc/nginx-unprivileged ## <<<<<<
+
+      # =====================================================
+      # BEGIN CHANGE - Lab 6a.2 Phase 5
+      #
+      # Replace:
+      #
+      # - image: nginx:alpine
+      #
+      # with the unprivileged NGINX image.
+      # =====================================================
+      - image: nginxinc/nginx-unprivileged
+      # =====================================================
+      # END CHANGE - Lab 6a.2 Phase 5
+      # =====================================================
+
         name: nginx
         securityContext:
           runAsNonRoot: true
           allowPrivilegeEscalation: false
           capabilities:
-            drop: ["ALL"]
+            drop:
+            - ALL
           seccompProfile:
             type: RuntimeDefault
+
+        # =====================================================
+        # BEGIN CHANGE - Lab 6a.2 Phase 5
+        #
+        # Replace:
+        #
+        # containerPort: 80
+        #
+        # with:
+        #
+        # containerPort: 8080
+        #
+        # The unprivileged NGINX image listens on port 8080.
+        # =====================================================
         ports:
-        - containerPort: 8080 ## <<<<<<<
+        - containerPort: 8080
+        # =====================================================
+        # END CHANGE - Lab 6a.2 Phase 5
+        # =====================================================
+
         resources:
           requests:
             cpu: 100m

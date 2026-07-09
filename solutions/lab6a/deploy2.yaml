@@ -17,15 +17,25 @@ spec:
       containers:
       - image: nginx:alpine
         name: nginx
-### -- new lines from here
+
+        # =====================================================
+        # BEGIN ADDITION - Lab 6a.2 Phase 3
+        #
+        # Add a container securityContext so the Pod can satisfy
+        # the Restricted Pod Security Standard.
+        # =====================================================
         securityContext:
           runAsNonRoot: true
           allowPrivilegeEscalation: false
           capabilities:
-            drop: ["ALL"]
+            drop:
+            - ALL
           seccompProfile:
             type: RuntimeDefault
-### -- to here
+        # =====================================================
+        # END ADDITION - Lab 6a.2 Phase 3
+        # =====================================================
+
         ports:
         - containerPort: 80
         resources: {}
