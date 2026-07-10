@@ -12,31 +12,6 @@ chmod +x ~/qakf-3day/reset-cluster.sh
 ./qakf-3day/reset-cluster.sh 
 ```
 
-Wait for Namespace Removal
-
-``` bash
-kubectl get ns
-```
-
-If either namespace remains in the Terminating state, wait until it disappears before continuing.
-
-Verify the Starting Point
-
-``` bash
-kubectl get ns
-kubectl get ingress -A
-kubectl get svc -A
-kubectl get networkpolicy -A
-```
-
-At this point:
-
-webserver should not exist.
-ingress should not exist.
-No custom NetworkPolicies should remain.
-No Ingress resources should remain.
-The previous ingress controller should have been removed.
-
 # Lab 6a.1 – Building a Governed Kubernetes Platform
 
 ## Learning Objectives
