@@ -112,6 +112,12 @@ Apply the policy:
 kubectl label ns webserver pod-security.kubernetes.io/enforce=restricted
 ```
 
+***What is the Restricted Pod Security***
+
+Kubernetes Pod Security Admission uses the built-in Pod Security Standards to validate Pods at the namespace level. The complete list of restrictions imposed by the Restricted profile can be found in the official Kubernetes documentation:
+
+https://kubernetes.io/docs/concepts/security/pod-security-standards/
+
 Inspect the namespace:
 
 ```bash
