@@ -345,15 +345,15 @@ Lets see what has been deployed:
 kubectl get pods,rs,deployments -n webserver
 ```
 
-We have 5 running pods. What about the other 5 though? Lets looks at the deploymemt itself for clues:
+We have 5 running pods. What about the other 5 though? Lets looks at the deployment itself for clues:
 
 ``` bash
 kubectl describe rs -n webserver
 ```
 
-The Deployment is requesting ten Pods, while the namespace quota only permits five.
+The Deployment is requesting ten Pods, while the namespace quota only permits 5 so there are warning shown regarding repicase 6-10 
 
-Update deploy.yaml and set the replicas count:
+Update **deploy.yaml** and set the replicas count to the maximun permitted:
 
 ```yaml
 replicas: 5
@@ -364,8 +364,15 @@ Apply the Deployment one final time.
 ``` bash
 kubectl delete deployment webserver -n webserver
 kubectl apply -n webserver -f deploy.yaml
-kubectl describe rs -n webserver
 ```
+And lets verify:
+
+``` bash
+kubectl get pods,rs,deployments -n webserver
+kubectl describe deployment -n webserver
+```
+
+All is good :-)
 
 ---
 
