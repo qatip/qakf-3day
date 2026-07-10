@@ -66,7 +66,7 @@ kubectl create deployment webserver \
   --dry-run=client -o yaml > deploy.yaml
 ```
 
-Open the file and review its contents.
+Open **deploy.yaml** and review its contents.
 
 Ask yourself:
 
@@ -84,43 +84,30 @@ Apply the manifest.
 ```bash
 kubectl apply -n webserver -f deploy.yaml
 ```
-
-Investigate the outcome instead of immediately editing the manifest.
-
-Useful commands:
+Error messages are displayed regarding PodSecurity violations.
+Lets find out what, if anything, has been created:
 
 ```bash
-kubectl get deploy -n webserver
-kubectl get rs -n webserver
-kubectl get pods -n webserver
-kubectl describe deployment webserver -n webserver
+kubectl get pods,rs,deployments -n webserver
 ```
 
-### Behind the Scenes
+Example output:
 
-A Deployment never creates Pods directly.
+NAME                                   DESIRED   CURRENT   READY   AGE
+replicaset.apps/webserver-5bd4f98fdb   10        0         0       96s
 
-The sequence is:
+NAME                        READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/webserver   0/10    0            0           96s
 
-```text
-Deployment
-      │
-      ▼
-ReplicaSet
-      │
-      ▼
-Pods
-```
+The deployment has deployed. The replicaset that makes up the deployment has been deployed. This issue is that none of the 10 desired pods have been deployed, because the manifest to create them does not include PodSecurity parameters.
 
-Understanding this relationship is essential when troubleshooting Kubernetes applications.
+Understanding this 'Deployment > Replicaset > Pod' relationship is essential when troubleshooting Kubernetes applications.
 
 ---
 
-# Phase 3 – Satisfy the Pod Security Standard
+# Phase 3 – Satisfy the Pod Security Standard requirements
 
-Review the Deployment events.
-
-You should discover that the Restricted Pod Security Standard has rejected the Pod specification.
+The initial warning told us that the Restricted Pod Security Standard, in effect for the Webserver namespace, has rejected the Pod specification.
 
 Add the required container `securityContext` to ***deploy.yaml*** and reapply the manifest.
 

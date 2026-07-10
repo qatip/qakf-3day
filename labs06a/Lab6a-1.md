@@ -214,6 +214,10 @@ kubectl describe networkpolicy -n webserver
 
 NetworkPolicies are enforced by the cluster's Container Network Interface (CNI) plugin. Kubernetes defines the policy model, while the CNI implements the filtering behaviour.
 
+### What have we done ?
+
+We have now configured pods in the Webserver namepace to allow **ONLY** TCP 8080 traffic in, and **ONLY** from the Ingress namespace.
+
 ---
 
 # Phase 5 – Deploy the NGINX Ingress Controller
@@ -273,6 +277,8 @@ You have completed the platform engineering phase of the exercise.
 
 Rather than deploying an application into an unrestricted cluster, you have first established the governance controls commonly found in enterprise Kubernetes environments.
 
-In the next lab you will attempt to deploy a simple NGINX application into this governed namespace. The deployment will initially fail several times—not because Kubernetes is malfunctioning, but because the controls you have configured are operating exactly as intended.
+In the next phase you will attempt to deploy a simple NGINX application into this governed namespace. The deployment will initially fail several times—not because Kubernetes is malfunctioning, but because the controls you have configured are operating exactly as intended.
 
 Each failure will reveal another aspect of Kubernetes security, resource governance or networking, allowing you to progressively adapt the workload until it complies with the platform.
+
+Please proceed with Lab6a.2
