@@ -91,16 +91,7 @@ Lets find out what, if anything, has been created:
 kubectl get pods,rs,deployments -n webserver
 ```
 
-Example output:
-
-NAME                                   DESIRED   CURRENT   READY   AGE
-
-replicaset.apps/webserver-5bd4f98fdb   10        0         0       96s
-
-
-NAME                        READY   UP-TO-DATE   AVAILABLE   AGE
-
-deployment.apps/webserver   0/10    0            0           96s
+![deploy-fail-lab6a2](../diagrams/deploy-fail-lab6a2.png)
 
 The deployment has deployed. The replicaset that makes up the deployment has been deployed. This issue is that none of the 10 desired pods have been deployed, because the manifest to create them does not include PodSecurity parameters.
 
