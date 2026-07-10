@@ -2,19 +2,16 @@
 
 The next series of labs builds a completely new Kubernetes platform from scratch.
 
-Run the following cleanup commands to remove the resources created during this exercise before continuing to Lab 6a.1.
+Run the following cleanup commands to remove any resources created during previous exercises before continuing to Lab 6a.1.
 
-***Remove Previous Lab Resources***
+***Environment reset***
 
 ```bash
-kubectl delete namespace webserver --ignore-not-found=true
-kubectl delete namespace ingress --ignore-not-found=true
-kubectl delete ingress new-ingress -n ingress --ignore-not-found=true
-kubectl delete svc webserver -n ingress --ignore-not-found=true
-helm uninstall nginx-ingress -n ingress 2>/dev/null || true
-kubectl delete networkpolicy --all -n webserver --ignore-not-found=true
-kubectl delete networkpolicy --all -n ingress --ignore-not-found=true
-kubectl delete resourcequota --all -n webserver --ignore-not-found=true
+kubectl get ns --no-headers | \
+awk '$1!="default" && $1!="kube-system" && $1!="kube-public" && $1!="kube-node-lease" {print $1}' | \
+xargs -r kubectl delete ns
+kubectl delete all --all
+kubectl create serviceaccount default
 ```
 
 Wait for Namespace Removal
