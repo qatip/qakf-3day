@@ -49,7 +49,6 @@ The **webserver** namespace should already contain:
 The NGINX Ingress Controller should also be running in the **ingress** namespace.
 
 ---
-
 # Phase 1 – Generate an Initial Deployment
 
 ## Why?

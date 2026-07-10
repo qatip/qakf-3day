@@ -89,34 +89,49 @@ webserver   5/5     5            5
 The webserver Service should be listening on port `8080`.
 
 ---
+## Phase 1 – Create the Initial Ingress Resource
 
-# Phase 1 – Create the Initial Ingress Resource
-
-## Why?
+# Why?
 
 An Ingress resource defines HTTP routing rules.
 
-It does not expose an application by itself. Instead, the Ingress Controller watches the Ingress resource and configures itself to route traffic based on those rules.
+It does not expose an application by itself. Instead, the NGINX Ingress Controller watches Ingress resources and configures itself to route incoming HTTP requests to the appropriate backend Service.
 
-Create the Ingress manifest:
+In this lab, the Ingress resource will be created in the ingress namespace and will initially refer to a Service named webserver.
 
-```bash
-kubectl create ingress new-ingress \
-  -n ingress \
-  --class=nginx \
-  --rule="/*=webserver:8080" \
-  --dry-run=client -o yaml > ingress.yaml
+At this stage, that Service does not yet exist in the ingress namespace. This is intentional and will be investigated later in the lab.
+
+**Determine the Cluster Node IP Address**
+
+The hostname used by the Ingress must resolve to the public IP address of the cluster node.
+
+Display the public IP address:
+
+``` bash
+curl ifconfig.io
 ```
 
-Review the generated file:
+Make a note of the returned address.
 
-```bash
+For example: 203.0.113.10
+
+You will use this address with sslip.io to create a hostname such as:
+
+***webserver.203.0.113.10.sslip.io***
+
+sslip.io automatically resolves hostnames containing an IP address back to that IP address.
+
+Create the Ingress Manifest
+
+Create a new file: 
+
+``` bash
 nano ingress.yaml
 ```
 
-It should look similar to this:
+Add the following manifest, replacing <PUBLIC-IP> with the public IP address obtained in the previous step:
 
-```yaml
+``` bash
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -125,56 +140,76 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-  - http:
+  - host: webserver.<PUBLIC-IP>.sslip.io
+    http:
       paths:
-      - backend:
+      - path: /
+        pathType: Prefix
+        backend:
           service:
             name: webserver
             port:
               number: 8080
-        path: /
-        pathType: Prefix
 ```
 
-Apply it:
+Save the file and exit nano.
 
-```bash
+## Apply the Ingress Resource
+
+Apply the manifest:
+
+``` bash
 kubectl apply -f ingress.yaml
 ```
 
-Verify:
+Verify that the Ingress resource has been created:
 
-```bash
+``` bash
 kubectl get ingress -n ingress
+```
+
+Describe it in more detail:
+
+``` bash
 kubectl describe ingress new-ingress -n ingress
 ```
 
-### Behind the Scenes
+You should see the configured host and backend:
 
-The Ingress resource has been created in the `ingress` namespace.
+Host: webserver.<PUBLIC-IP>.sslip.io
 
-That detail matters.
+and:
 
-When an Ingress references a backend Service by name, Kubernetes resolves that Service name in the same namespace as the Ingress resource.
+webserver:8080
 
-So this backend:
+You may also see an error similar to:
 
-```yaml
+endpoints "webserver" not found
+
+This is expected at this stage.
+
+#Behind the Scenes
+
+The Ingress resource has been created in the ingress namespace.
+
+When an Ingress references a backend Service by name, that Service is resolved in the same namespace as the Ingress.
+
+Therefore, this backend:
+
 service:
   name: webserver
-```
 
 means:
 
-```text
 webserver.ingress.svc.cluster.local
-```
 
-It does **not** mean:
+It does not refer to:
 
-```text
 webserver.webserver.svc.cluster.local
-```
+
+The real application Service currently exists in the webserver namespace, so the Ingress Controller cannot yet locate its backend.
+
+This namespace mismatch is deliberate and will be resolved later in the lab by creating an ExternalName Service in the ingress namespace.
 
 ---
 
