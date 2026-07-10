@@ -168,7 +168,7 @@ Why? Lets delve deeper and first 'describe' the deployment and see if there are 
 kubectl describe deployments.apps -n webserver
 ```
 
-Read the output and you will see that the ReplicaSet failed to create the 10 deired replicas (pods). It mentions 'MinimumRepicasUnavailable' which might lead us towards a quotaing issue given that the Platform team has limited the namespace to a maximum of 5 pods.
+Read the output and you will see that the ReplicaSet failed to create the 10 desired replicas (pods). It mentions 'MinimumRepicasUnavailable' which might lead us towards a quotaing issue given that the Platform team has limited the namespace to a maximum of 5 pods.
 
 Lets dig deeper and focus on the replicaset itself:
 
@@ -177,7 +177,7 @@ kubectl describe rs -n webserver
 ```
 Well now we see a more fundemantal issue, lots of repeated warnings regarding quota requirements... 
 
-'failed quota: webserver-quota: must specify cpu for: nginx; memory for: nginx'
+*'failed quota: webserver-quota: must specify cpu for: nginx; memory for: nginx'*
 
 The key portion in the message is 'must specify' for cpu and memory consumption.
 
@@ -267,11 +267,13 @@ ResourceQuotas ensure that every workload declares these values before consuming
 
 # Phase 5 – Resolve the Image Problem
 
-Some pods are now created but fail to start:
+Lets see what the results of our last deployment are:
 
 ```bash
-kubectl get pods -n webserver 
+kubectl get pods,rs,deployments -n webserver
 ```
+
+Mmmmm, well we now have 5 pods, not the 10 we were hoping for, and the containers in the 5 are failing to start.
 
 The standard `nginx:alpine` image expects to run as root, conflicting with the namespace security policy.
 
