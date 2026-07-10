@@ -7,11 +7,9 @@ Run the following cleanup commands to remove any resources created during previo
 ***Environment reset***
 
 ```bash
-kubectl get ns --no-headers | \
-awk '$1!="default" && $1!="kube-system" && $1!="kube-public" && $1!="kube-node-lease" {print $1}' | \
-xargs -r kubectl delete ns
-kubectl delete all --all
-kubectl create serviceaccount default
+cd ~
+chmod +x ~/qakf-3day/reset-cluster.sh
+./qakf-3day/reset-cluster.sh 
 ```
 
 Wait for Namespace Removal
