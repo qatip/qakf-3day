@@ -149,38 +149,48 @@ spec:
         resources: {}
 
 ```
-
 Verify the outcome again.
 
 ``` bash
 kubectl delete deployment webserver -n webserver
 kubectl apply -n webserver -f deploy.yaml
 ```
+There are no error messages displayed, but what has been deployed ? Lets find out:
+
+```bash
+kubectl get pods,rs,deployments -n webserver
+```
+There are still no pods!
+
+Why? Lets delve deeper and first 'describe' the deployment and see if there are any clues:
+
+``` bash
+kubectl describe deployments.apps -n webserver
+```
+
+Read the output and you will see that the ReplicaSet failed to create the 10 deired replicas (pods). It mentions 'MinimumRepicasUnavailable' which might lead us towards a quotaing issue given that the Platform team has limited the namespace to a maximum of 5 pods.
+
+Lets dig deeper and focus on the replicaset itself:
+
+``` bash
+kubectl describe rs -n webserver
+```
+Well now we see a more fundemantal issue, lots of repeated warnings regarding quota requirements... 
+
+'failed quota: webserver-quota: must specify cpu for: nginx; memory for: nginx'
+
+The key portion in the message is 'must specify' for cpu and memory consumption.
+
+Our deploy manifest has no mention of CPU or Memory allocations, the amount of each that the pod requires.
 
 ### Behind the Scenes
 
 Notice that Kubernetes has not modified your manifest.
-
-Instead, the Admission Controller simply accepts or rejects it. Responsibility for producing a compliant workload remains with the application developer.
+Instead, the Admission Controller simply accepts or rejects it. Responsibility for producing a compliant workload manifest remains with the application developer.
 
 ---
 
 # Phase 4 – Resolve ResourceQuota Failures
-
-``` bash
-kubectl get deployments.apps -n webserver 
-```
-
-None of the 10 pods have been deployed !!!
-
-
-Investigate the ReplicaSet.
-
-```bash
-kubectl describe rs -n webserver
-```
-
-The events should indicate that the namespace ResourceQuota requires CPU and memory values.
 
 Update deploy.yaml so that the deployment complies with requirements:
 
