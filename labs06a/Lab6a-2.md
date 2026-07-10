@@ -339,22 +339,21 @@ Container security depends on both the Kubernetes configuration **and** the cont
 
 # Phase 6 – Understand the Replica Count
 
+Lets see what has been deployed: 
+
+```bash
+kubectl get pods,rs,deployments -n webserver
+```
+
+We have 5 running pods. What about the other 5 though? Lets looks at the deploymemt itself for clues:
+
 ``` bash
 kubectl describe rs -n webserver
 ```
 
-Your Pods should now start successfully, but you may only see five replicas.
-
-Investigate:
-
-```bash
-kubectl get deployment -n webserver
-kubectl describe quota -n webserver
-```
-
 The Deployment is requesting ten Pods, while the namespace quota only permits five.
 
-Update:
+Update deploy.yaml and set the replicas count:
 
 ```yaml
 replicas: 5
