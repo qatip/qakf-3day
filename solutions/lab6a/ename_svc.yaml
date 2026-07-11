@@ -6,3 +6,6 @@ metadata:
 spec:
   type: ExternalName
   externalName: webserver.webserver.svc.cluster.local
+  ports:
+  - port: 8080
+    targetPort: 8080

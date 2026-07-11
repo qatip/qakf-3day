@@ -333,7 +333,7 @@ Notice the backend error:
 
 This tells us that the Ingress Controller cannot locate a Service called webserver within its own namespace.
 
-Behind the Scenes
+## Behind the Scenes
 
 When an Ingress backend references a Service by name, Kubernetes assumes that Service exists in the same namespace as the Ingress resource.
 
