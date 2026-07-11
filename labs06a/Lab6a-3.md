@@ -238,7 +238,7 @@ The high-numbered port after the colon is the NodePort.
 Open the following URL in a browser:
 
 ```text
-http://<cluster-node-ip>:<nodeport>
+http://webserver.<PUBLIC-IP>.sslip.io:<NODEPORT>
 ```
 
 You may not see the NGINX welcome page yet.
@@ -531,7 +531,7 @@ kubectl get svc -n ingress
 Reload the browser:
 
 ```text
-http://<cluster-node-ip>:<nodeport>
+http://webserver.<PUBLIC-IP>.sslip.io:<NODEPORT>
 ```
 
 You should now see the default NGINX welcome page.
@@ -539,7 +539,7 @@ You should now see the default NGINX welcome page.
 You can also test from the command line:
 
 ```bash
-curl http://<cluster-node-ip>:<nodeport>
+curl http://webserver.<PUBLIC-IP>.sslip.io:<NODEPORT>
 ```
 
 If the request still fails, follow the troubleshooting sequence below.
