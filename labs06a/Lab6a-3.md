@@ -1,137 +1,62 @@
-# Lab 6a.3 – Publishing and Troubleshooting a Governed Application
-
-
-
+# Lab 6a.3 – Publishing a Governed Application
 
 ## Learning Objectives
 
 By the end of this lab you will be able to:
 
 - Create an Ingress resource.
-- Explain how Ingress backend resolution works.
-- Troubleshoot failed ingress routing.
+- Publish an application through an NGINX Ingress Controller.
+- Explain why Ingress backends are namespace-local.
 - Use an `ExternalName` Service to bridge namespaces.
-- Explain why `ExternalName` Services depend on DNS.
-- Update a NetworkPolicy to permit DNS egress.
-- Verify that a locked-down application is reachable through an ingress controller.
+- Follow an HTTP request from a browser to a Kubernetes Pod.
+- Troubleshoot common Ingress problems.
 
 ---
 
 # Background
 
-In the previous lab you deployed a compliant webserver into the `webserver` namespace.
+In the previous lab you successfully deployed a compliant webserver into the `webserver` namespace.
 
-The application is now running, but it is only exposed internally through a ClusterIP Service.
+The application is currently only reachable inside the cluster through a ClusterIP Service.
 
-In this lab you will publish that application through the NGINX Ingress Controller running in the `ingress` namespace.
+In this lab you will publish that application using the NGINX Ingress Controller running in the `ingress` namespace.
 
-This is where several Kubernetes concepts meet:
-
-- Ingress
-- Services
-- Namespaces
-- DNS
-- NetworkPolicies
-- NodePort
-- Ingress Controllers
-
-The lab deliberately introduces a realistic routing problem. The application is healthy, but the request path is incomplete. Your job is to follow the request, identify each failure point and progressively fix the design.
-
----
-
-# Request Path
-
-By the end of the lab, traffic should follow this path:
-
-```text
-Browser
-  |
-  v
-NodePort on cluster node
-  |
-  v
-NGINX Ingress Controller
-  |
-  v
-Service named webserver in the ingress namespace
-  |
-  v
-ExternalName DNS alias
-  |
-  v
-Service named webserver in the webserver namespace
-  |
-  v
-webserver Pods on port 8080
-```
-
-At the start of the lab, several parts of this path are missing or blocked.
+The lab deliberately starts with an incomplete configuration. You will investigate why it fails before completing the design.
 
 ---
 
 # Starting Point
 
-Confirm that the webserver is running.
+Verify the application and ingress controller are running.
 
 ```bash
 kubectl get deployment -n webserver
 kubectl get pods -n webserver
 kubectl get svc -n webserver
+
+kubectl get pods -n ingress
+kubectl get svc -n ingress
 ```
 
-Expected result:
+Expected:
 
-```text
-NAME        READY   UP-TO-DATE   AVAILABLE
-webserver   5/5     5            5
-```
-
-The webserver Service should be listening on port `8080`.
+- Five running webserver Pods
+- A ClusterIP Service called `webserver`
+- A running NGINX Ingress Controller
 
 ---
-## Phase 1 – Create the Initial Ingress Resource
 
-# Why?
+# Phase 1 – Create the Ingress Resource
 
-An Ingress resource defines HTTP routing rules.
+Determine your public IP address:
 
-It does not expose an application by itself. Instead, the NGINX Ingress Controller watches Ingress resources and configures itself to route incoming HTTP requests to the appropriate backend Service.
-
-In this lab, the Ingress resource will be created in the ingress namespace and will initially refer to a Service named webserver.
-
-At this stage, that Service does not yet exist in the ingress namespace. This is intentional and will be investigated later in the lab.
-
-**Determine the Cluster Node IP Address**
-
-The hostname used by the Ingress must resolve to the public IP address of the cluster node.
-
-Display the public IP address:
-
-``` bash
+```bash
 curl ifconfig.io
 ```
 
-Make a note of the returned address.
+Create `ingress.yaml`:
 
-For example: 203.0.113.10
-
-You will use this address with sslip.io to create a hostname such as:
-
-***webserver.203.0.113.10.sslip.io***
-
-sslip.io automatically resolves hostnames containing an IP address back to that IP address.
-
-Create the Ingress Manifest
-
-Create a new file: 
-
-``` bash
-nano ingress.yaml
-```
-
-Add the following manifest, replacing <PUBLIC-IP> with the public IP address obtained in the previous step:
-
-``` bash
+```yaml
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -152,242 +77,103 @@ spec:
               number: 8080
 ```
 
-Save the file and exit nano.
+Replace `<PUBLIC-IP>` with your own address.
 
-## Apply the Ingress Resource
+Apply it:
 
-Apply the manifest:
-
-``` bash
+```bash
 kubectl apply -f ingress.yaml
-```
-
-Verify that the Ingress resource has been created:
-
-``` bash
 kubectl get ingress -n ingress
-```
-
-Describe it in more detail:
-
-``` bash
 kubectl describe ingress new-ingress -n ingress
 ```
 
-You should see the configured host and backend:
+You should see an error similar to:
 
-Host: webserver.<PUBLIC-IP>.sslip.io
+```text
+<error: endpoints "webserver" not found>
+```
 
-and:
+This is expected.
 
-webserver:8080
+### Behind the Scenes
 
-You may also see an error similar to: endpoints "webserver" not found
-
-This is expected at this stage.
-
-## Behind the Scenes
-
-The Ingress resource has been created in the ingress namespace.
-
-When an Ingress references a backend Service by name, that Service is resolved in the same namespace as the Ingress.
-
-Therefore, this backend:
-
-service:
-  name: webserver
-
-means:
-
-webserver.ingress.svc.cluster.local
-
-It does not refer to:
-
-webserver.webserver.svc.cluster.local
-
-The real application Service currently exists in the webserver namespace, so the Ingress Controller cannot yet locate its backend.
-
-This namespace mismatch is deliberate and will be resolved later in the lab by creating an ExternalName Service in the ingress namespace.
+Ingress backends always reference Services in the same namespace as the Ingress resource.
 
 ---
 
 # Phase 2 – Find the Entry Point
 
-## Why?
-
-The lab cluster is not using a cloud load balancer, so the Ingress Controller Service will not receive an external cloud IP address.
-
-Instead, traffic reaches the controller through a NodePort.
-
-List the ingress services:
+Display the ingress Service:
 
 ```bash
 kubectl get svc -n ingress
 ```
 
-Look for the HTTP port mapping.
+Locate the HTTP NodePort.
 
-Example:
-
-```text
-80:30xxx/TCP
-```
-
-The high-numbered port after the colon is the NodePort.
-
-Open the following URL in a browser:
+Browse to:
 
 ```text
 http://webserver.<PUBLIC-IP>.sslip.io:<NODEPORT>
 ```
 
-You may not see the NGINX welcome page yet.
+The request will fail.
 
 That is expected.
 
-### Behind the Scenes
-
-A NodePort exposes a Service on a high-numbered port on each cluster node.
-
-The traffic path is:
-
-```text
-Browser
-  |
-  v
-Node IP and NodePort
-  |
-  v
-Ingress Controller Service
-  |
-  v
-Ingress Controller Pod
-```
-
-At this point, traffic can reach the ingress controller, but the controller may not yet be able to reach the backend application.
-
 ---
 
-# Phase 3 – Prove the Application Is Healthy
+# Phase 3 – Verify the Backend
 
-Before blaming Ingress, confirm that the backend application is actually working.
+Confirm the application itself is healthy.
 
 ```bash
 kubectl get pods -n webserver
 kubectl get svc -n webserver
 kubectl get endpoints -n webserver
-```
-
-Check the webserver logs:
-
-```bash
 kubectl logs -n webserver -l app=webserver
 ```
 
-### Investigation Point
+If the Service has endpoints, the application is working correctly.
 
-If the Pods are running and the Service has endpoints, the application itself is healthy.
-
-The problem is therefore somewhere in the path between the Ingress Controller and the backend Service.
+The problem lies between the Ingress Controller and the backend Service.
 
 ---
-# Phase 4 – Understand the Namespace Boundary
 
-## Why?
+# Phase 4 – Understand Namespace Boundaries
 
-The Ingress resource was created in the ingress namespace and contains the following backend definition:
+Compare the Services:
 
-backend:
-  service:
-    name: webserver
-    port:
-      number: 8080
-
-Although the application is running correctly, the Ingress Controller reports an error because it cannot find the backend Service.
-
-Investigate why.
-
-First, list the Services in both namespaces:
-
-``` bash
+```bash
 kubectl get svc -n ingress
 kubectl get svc -n webserver
 ```
 
-You should see that the application Service exists in the webserver namespace:
+Notice there is no Service called `webserver` in the `ingress` namespace.
 
-NAME        TYPE        PORT(S)
-webserver   ClusterIP   8080/TCP
+The Ingress references:
 
-However, there is no Service named webserver in the ingress namespace.
-
-Verify the Ingress status:
-
-``` bash
-kubectl describe ingress new-ingress -n ingress
-```
-
-Notice the backend error:
-
-<error: endpoints "webserver" not found>
-
-This tells us that the Ingress Controller cannot locate a Service called webserver within its own namespace.
-
-## Behind the Scenes
-
-When an Ingress backend references a Service by name, Kubernetes assumes that Service exists in the same namespace as the Ingress resource.
-
-Because this Ingress was created in the ingress namespace, the backend:
-
+```yaml
 service:
   name: webserver
+```
 
-is interpreted as:
+Since the Ingress lives in the `ingress` namespace, Kubernetes expects a Service called `webserver` in that same namespace.
 
-Service: webserver
-Namespace: ingress
+### Behind the Scenes
 
-The actual application Service is located in:
+The real application Service exists in the `webserver` namespace.
 
-Namespace: webserver
-Service: webserver
+An Ingress cannot directly reference a Service in another namespace.
 
-Although the Service has the fully qualified DNS name:
-
-webserver.webserver.svc.cluster.local
-
-the Ingress cannot refer to it directly. Standard Kubernetes Ingress resources are intentionally restricted to Services within their own namespace.
-
-To solve this problem, the next phase creates a Service named webserver in the ingress namespace. Rather than selecting Pods directly, that Service will act as a bridge to the real Service running in the webserver namespace. Once that bridge exists, the Ingress Controller will have a valid backend to route requests towards.
+---
 
 # Phase 5 – Create an ExternalName Service
 
-## Why?
-
-To bridge the namespace boundary, you will create a Service named `webserver` inside the `ingress` namespace.
-
-This Service will not select Pods directly. Instead, it will act as a DNS alias pointing to the real Service in the `webserver` namespace.
-
-Review the provided manifest:
+Review the supplied manifest:
 
 ```bash
 nano ~/qakf-3day/solutions/lab6a/ename_svc.yaml
-```
-
-It should look like this:
-
-```yaml
-apiVersion: v1
-kind: Service
-metadata:
-  name: webserver
-  namespace: ingress
-spec:
-  type: ExternalName
-  externalName: webserver.webserver.svc.cluster.local
-  ports:
-  - port: 8080
-    targetPort: 8080
 ```
 
 Apply it:
@@ -405,319 +191,83 @@ kubectl get svc webserver -n ingress -o yaml
 
 Reload the browser.
 
-The application may still fail.
+The application should now load successfully.
 
-That is also expected.
+### Behind the Scenes
 
-You have fixed the namespace lookup problem, but now the Ingress Controller must perform DNS resolution.
+The ExternalName Service creates a Service called `webserver` inside the `ingress` namespace.
 
----
-
-# Phase 6 – Understand the DNS Dependency
-
-An `ExternalName` Service is effectively a DNS alias.
-
-The Ingress Controller now resolves:
-
-```text
-webserver.ingress.svc.cluster.local
-```
-
-which points to:
+Rather than selecting Pods directly, it forwards requests to:
 
 ```text
 webserver.webserver.svc.cluster.local
 ```
 
-Kubernetes DNS normally runs in the `kube-system` namespace as Pods labelled:
-
-```yaml
-k8s-app: kube-dns
-```
-
-However, the `ingress` namespace has an egress NetworkPolicy. That policy currently allows traffic towards the webserver namespace, but it does not allow DNS egress to kube-dns.
-
-So the Ingress Controller cannot resolve the backend name.
-
-### Behind the Scenes
-
-NetworkPolicies do not only affect application traffic.
-
-They can also block infrastructure dependencies such as:
-
-- DNS
-- metrics collection
-- logging agents
-- service mesh control planes
-- external APIs
-
-This is a common real-world troubleshooting issue.
+This bridges the namespace boundary while allowing the Ingress to continue using a local Service reference.
 
 ---
 
-# Phase 7 – Update the Ingress NetworkPolicy
+# Phase 6 – Follow the Request
 
-Open the ingress NetworkPolicy:
-
-```bash
-nano netpol_ingress.yaml
-```
-
-It should already allow egress traffic to the `webserver` namespace on TCP port `8080`.
-
-Add a second egress rule allowing DNS lookups to kube-dns in the `kube-system` namespace.
-
-Use this completed version if required:
-
-```yaml
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: ingress-netpol
-spec:
-  podSelector: {}
-  policyTypes:
-  - Egress
-  egress:
-  - to:
-    - namespaceSelector:
-        matchLabels:
-          app: webserver
-    ports:
-    - protocol: TCP
-      port: 8080
-  - to:
-    - namespaceSelector:
-        matchLabels:
-          kubernetes.io/metadata.name: kube-system
-      podSelector:
-        matchLabels:
-          k8s-app: kube-dns
-    ports:
-    - protocol: UDP
-      port: 53
-    - protocol: TCP
-      port: 53
-```
-
-Apply the updated policy:
-
-```bash
-kubectl apply -n ingress -f netpol_ingress.yaml
-```
-
-Verify:
-
-```bash
-kubectl describe networkpolicy ingress-netpol -n ingress
-```
-
-### Behind the Scenes
-
-The first egress rule allows the controller to reach the application.
-
-The second egress rule allows the controller to resolve DNS names.
-
-Both are required for this design to work.
-
----
-
-# Phase 8 – Test the Published Application
-
-``` bash
-kubectl get svc -n ingress
-```
-
-Reload the browser:
+The completed request path is now:
 
 ```text
-http://webserver.<PUBLIC-IP>.sslip.io:<NODEPORT>
+Browser
+    |
+sslip.io DNS
+    |
+Public IP
+    |
+NodePort
+    |
+NGINX Ingress Controller
+    |
+ExternalName Service (ingress namespace)
+    |
+ClusterIP Service (webserver namespace)
+    |
+Pods
 ```
-
-You should now see the default NGINX welcome page.
-
-You can also test from the command line:
-
-```bash
-curl http://webserver.<PUBLIC-IP>.sslip.io:<NODEPORT>
-```
-
-If the request still fails, follow the troubleshooting sequence below.
 
 ---
 
-# Troubleshooting Sequence
+# Phase 7 – Troubleshooting
 
-Use this order. It follows the request path from outside the cluster to the backend Pods.
-
-## 1. Check the NodePort
-
-```bash
-kubectl get svc -n ingress
-```
-
-Confirm that you are using the correct high-numbered port.
-
-## 2. Check the Ingress Controller Pods
+If the application does not load, investigate in this order.
 
 ```bash
 kubectl get pods -n ingress
-kubectl logs -n ingress -l app.kubernetes.io/name=nginx-ingress
-```
-
-## 3. Check the Ingress resource
-
-```bash
+kubectl get ingress -n ingress
 kubectl describe ingress new-ingress -n ingress
-```
 
-Confirm that the backend points to:
-
-```text
-webserver:8080
-```
-
-## 4. Check the ExternalName Service
-
-```bash
-kubectl get svc webserver -n ingress -o yaml
-```
-
-Confirm:
-
-```yaml
-type: ExternalName
-externalName: webserver.webserver.svc.cluster.local
-```
-
-## 5. Check the real backend Service
-
-```bash
-kubectl get svc webserver -n webserver -o yaml
-kubectl get endpoints webserver -n webserver
-```
-
-Confirm that the Service exposes port `8080` and has endpoints.
-
-## 6. Check the webserver Pods
-
-```bash
-kubectl get pods -n webserver --show-labels
-```
-
-Confirm the Pods are running and labelled:
-
-```yaml
-app: webserver
-```
-
-## 7. Check NetworkPolicies
-
-```bash
-kubectl get networkpolicy -A
-kubectl describe networkpolicy ingress-netpol -n ingress
-kubectl describe networkpolicy webserver-netpol -n webserver
-```
-
-Confirm that:
-
-- The ingress namespace can egress to the webserver namespace on TCP 8080.
-- The ingress namespace can egress to kube-dns on TCP/UDP 53.
-- The webserver namespace allows ingress from the ingress namespace on TCP 8080.
-
----
-
-# Final Expected State
-
-By the end of this lab you should have the following resources.
-
-## Namespaces
-
-```bash
-kubectl get ns webserver ingress --show-labels
-```
-
-## Webserver Deployment
-
-```bash
-kubectl get deployment -n webserver
-```
-
-Expected:
-
-```text
-webserver   5/5
-```
-
-## Webserver Service
-
-```bash
-kubectl get svc -n webserver
-```
-
-Expected:
-
-```text
-webserver   ClusterIP   ...   8080/TCP
-```
-
-## Ingress Controller
-
-```bash
-kubectl get pods -n ingress
-kubectl get svc -n ingress
-```
-
-## ExternalName Service
-
-```bash
 kubectl get svc webserver -n ingress
-```
+kubectl get svc webserver -n webserver
+kubectl get endpoints webserver -n webserver
 
-Expected type:
-
-```text
-ExternalName
-```
-
-## NetworkPolicies
-
-```bash
 kubectl get networkpolicy -A
+
+kubectl get pods -n webserver
+kubectl logs -n webserver -l app=webserver
 ```
 
-Expected:
+Check that:
 
-```text
-ingress     ingress-netpol
-webserver   webserver-netpol
-```
-
----
-
-# Knowledge Check
-
-1. Why did the first Ingress configuration fail?
-2. Why does an Ingress backend resolve Services in the same namespace as the Ingress?
-3. What problem does the `ExternalName` Service solve?
-4. Why does `ExternalName` require DNS access?
-5. Why did the ingress NetworkPolicy need both application egress and DNS egress?
-6. Why is the application still protected even though it is published through Ingress?
+- The Ingress Controller is running.
+- The Ingress exists.
+- The ExternalName Service exists.
+- The backend Service has endpoints.
+- The webserver NetworkPolicy allows traffic from the labelled `ingress` namespace.
 
 ---
 
 # Summary
 
-You have now published a governed application through an ingress controller while preserving namespace separation and network controls.
+You have successfully published an application through an NGINX Ingress Controller while maintaining namespace separation.
 
-The final design is intentionally more complex than simply exposing a Service directly, but it demonstrates several real production concerns:
+In this lab you learned that:
 
-- Application namespaces should remain isolated.
-- Ingress controllers often run in dedicated namespaces.
-- Cross-namespace routing requires deliberate design.
-- DNS is a critical dependency.
-- NetworkPolicies must account for both application traffic and infrastructure traffic.
-
-In this lab you followed the request path step by step, fixed each missing piece and proved that the application could be reached safely through the ingress layer.
-
-This completes Lab 6a and sets the foundation for the Kyverno policy-as-code labs that follow.
+- Ingress backends are namespace-local.
+- ExternalName Services can bridge namespace boundaries.
+- NodePorts provide access into the cluster.
+- NetworkPolicies continue to protect the application namespace.
+- Following the request path is the quickest way to troubleshoot Ingress problems.
