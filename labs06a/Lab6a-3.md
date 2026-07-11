@@ -291,47 +291,74 @@ If the Pods are running and the Service has endpoints, the application itself is
 The problem is therefore somewhere in the path between the Ingress Controller and the backend Service.
 
 ---
-
 # Phase 4 – Understand the Namespace Boundary
 
-The Ingress was created in the `ingress` namespace.
+## Why?
 
-Its backend refers to a Service called:
+The Ingress resource was created in the ingress namespace and contains the following backend definition:
 
-```text
-webserver
-```
+backend:
+  service:
+    name: webserver
+    port:
+      number: 8080
 
-But there is no Service called `webserver` in the `ingress` namespace.
+Although the application is running correctly, the Ingress Controller reports an error because it cannot find the backend Service.
 
-The real Service exists in the `webserver` namespace.
+Investigate why.
 
-Check both namespaces:
+First, list the Services in both namespaces:
 
-```bash
+``` bash
 kubectl get svc -n ingress
 kubectl get svc -n webserver
 ```
 
-You should see that the backend Service exists here:
+You should see that the application Service exists in the webserver namespace:
 
-```text
+NAME        TYPE        PORT(S)
+webserver   ClusterIP   8080/TCP
+
+However, there is no Service named webserver in the ingress namespace.
+
+Verify the Ingress status:
+
+``` bash
+kubectl describe ingress new-ingress -n ingress
+```
+
+Notice the backend error:
+
+<error: endpoints "webserver" not found>
+
+This tells us that the Ingress Controller cannot locate a Service called webserver within its own namespace.
+
+Behind the Scenes
+
+When an Ingress backend references a Service by name, Kubernetes assumes that Service exists in the same namespace as the Ingress resource.
+
+Because this Ingress was created in the ingress namespace, the backend:
+
+service:
+  name: webserver
+
+is interpreted as:
+
+Service: webserver
+Namespace: ingress
+
+The actual application Service is located in:
+
+Namespace: webserver
+Service: webserver
+
+Although the Service has the fully qualified DNS name:
+
 webserver.webserver.svc.cluster.local
-```
 
-but the Ingress is trying to resolve this:
+the Ingress cannot refer to it directly. Standard Kubernetes Ingress resources are intentionally restricted to Services within their own namespace.
 
-```text
-webserver.ingress.svc.cluster.local
-```
-
-### Behind the Scenes
-
-Ingress backends are namespace-local.
-
-This prevents an Ingress in one namespace from casually pointing at Services in another namespace. In multi-team clusters, that behaviour is intentional because it avoids accidental cross-namespace exposure.
-
----
+To solve this problem, the next phase creates a Service named webserver in the ingress namespace. Rather than selecting Pods directly, that Service will act as a bridge to the real Service running in the webserver namespace. Once that bridge exists, the Ingress Controller will have a valid backend to route requests towards.
 
 # Phase 5 – Create an ExternalName Service
 
