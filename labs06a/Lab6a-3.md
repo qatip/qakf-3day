@@ -524,6 +524,10 @@ Both are required for this design to work.
 
 # Phase 8 – Test the Published Application
 
+``` bash
+kubectl get svc -n ingress
+```
+
 Reload the browser:
 
 ```text
