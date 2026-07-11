@@ -1,3 +1,5 @@
+## Final fix... enjoy UKTL :-)
+
 # Lab 6a.3 – Publishing a Governed Application
 
 ## Learning Objectives
