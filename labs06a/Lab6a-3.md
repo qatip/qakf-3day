@@ -182,13 +182,11 @@ and:
 
 webserver:8080
 
-You may also see an error similar to:
-
-endpoints "webserver" not found
+You may also see an error similar to: endpoints "webserver" not found
 
 This is expected at this stage.
 
-#Behind the Scenes
+# Behind the Scenes
 
 The Ingress resource has been created in the ingress namespace.
 
