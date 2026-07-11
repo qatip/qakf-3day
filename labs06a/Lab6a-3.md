@@ -1,163 +1,213 @@
-# Lab 6a.3 – Publishing the Webserver Through Ingress
+# Lab 6a.3 – Publishing a Governed Application
 
 ## Learning Objectives
 
 By the end of this lab you will be able to:
 
-- Create an Ingress resource.
-- Publish an application through an NGINX Ingress Controller.
-- Explain why an Ingress backend Service must be in the same namespace as the Ingress.
-- Identify the NodePort used to reach the Ingress Controller.
-- Test and troubleshoot the complete request path.
+- Publish an application through the NGINX Ingress Controller.
+- Create and verify an Ingress resource.
+- Understand why the Ingress Controller runs on the worker nodes.
+- Use `sslip.io` to create a hostname for testing.
+- Follow the complete request path from browser to application.
+- Troubleshoot common Ingress deployment problems.
 
 ---
 
 # Background
 
-In Lab 6a.1 you created a governed Kubernetes platform.
+In Lab 6a.1 you acted as the Platform Engineering team, preparing a governed Kubernetes environment.
 
-In Lab 6a.2 you deployed a compliant NGINX workload into the `webserver` namespace and exposed it internally through a ClusterIP Service.
+You created:
 
-In this lab you will publish that application through the NGINX Ingress Controller running in the `ingress` namespace.
+- Dedicated namespaces
+- Pod Security Admission
+- ResourceQuotas
+- NetworkPolicies
+- An NGINX Ingress Controller
 
-The Ingress Controller and the Ingress resource do not need to be in the same namespace.
+In Lab 6a.2 you switched roles and became an Application Developer.
 
-The Ingress resource will be created in the `webserver` namespace because its backend Service also exists in that namespace.
+You successfully deployed a compliant NGINX workload into the **webserver** namespace and exposed it internally using a ClusterIP Service.
+
+The application is now healthy, but it can only be reached from within the cluster.
+
+In this lab you will publish the application through the NGINX Ingress Controller.
 
 ---
 
 # Request Path
 
-By the end of the lab, traffic should follow this path:
+By the end of this lab, traffic should follow the path below.
 
-```text
-Browser or curl
-      |
-      v
-webserver.<PUBLIC-IP>.sslip.io
-      |
-      v
-Cluster node public IP
-      |
-      v
-Ingress Controller NodePort
-      |
-      v
-NGINX Ingress Controller
-      |
-      v
-webserver Service in the webserver namespace
-      |
-      v
-webserver Pods on TCP 8080
 ```
+Browser
+    │
+    ▼
+webserver.<WORKER-PUBLIC-IP>.sslip.io
+    │
+    ▼
+Worker Node Public IP
+    │
+    ▼
+NodePort
+    │
+    ▼
+NGINX Ingress Controller
+    │
+    ▼
+ClusterIP Service
+    │
+    ▼
+webserver Pods
+```
+
+Each phase of this lab builds one section of this request path.
 
 ---
 
 # Starting Point
 
-Confirm that the resources created in the previous labs still exist.
+Verify that the application deployed in Lab 6a.2 is still healthy.
 
 ```bash
-kubectl get deployment -n webserver
-kubectl get pods -n webserver
-kubectl get svc -n webserver
-kubectl get pods -n ingress
-kubectl get svc -n ingress
+kubectl get deploy,pods,svc -n webserver
+kubectl get pods,svc -n ingress
 ```
 
-You should have:
+You should see:
 
 - Five running webserver Pods.
-- One ClusterIP Service called `webserver` in the `webserver` namespace.
-- Running NGINX Ingress Controller Pods in the `ingress` namespace.
-- An Ingress Controller Service exposing HTTP through a NodePort.
+- A ClusterIP Service called **webserver**.
+- Running NGINX Ingress Controller Pods.
+
+If any of these resources are missing, complete Lab 6a.2 before continuing.
 
 ---
 
-# Phase 1 – Remove Any Previous Lab Attempts
+# Phase 1 – Identify the Ingress Worker
 
 ## Why?
 
-This lab uses a deliberately simple and reliable design.
+The NGINX Ingress Controller was installed as a **DaemonSet**.
 
-The Ingress Controller remains in the `ingress` namespace, while the Ingress resource is created in the `webserver` namespace alongside its backend Service.
+Unlike a Deployment, a DaemonSet creates one Pod on every worker node.
 
-Remove any resources left behind by previous attempts:
+These Pods receive incoming HTTP requests.
 
-```bash
-kubectl delete networkpolicy ingress-netpol -n ingress --ignore-not-found
-kubectl delete ingress new-ingress -n ingress --ignore-not-found
-kubectl delete svc webserver -n ingress --ignore-not-found
-kubectl delete ingress new-ingress -n webserver --ignore-not-found
-```
+The Kubernetes controller node is used to administer the cluster and does **not** receive application traffic.
 
-Confirm that the Ingress Controller is healthy:
+This distinction is extremely important.
+
+Display the Ingress Controller Pods:
 
 ```bash
-kubectl get pods -n ingress
+kubectl get pods -n ingress -o wide
 ```
 
-Check recent controller logs:
-
-```bash
-kubectl logs -n ingress   -l app.kubernetes.io/name=nginx-ingress   --since=1m   --prefix
-```
-
-You should not see repeated errors showing that the controller cannot reach:
+Example:
 
 ```text
-https://10.96.0.1:443
+NAME                             READY   STATUS    NODE
+nginx-ingress-controller-abc12   1/1     Running   k8s-worker-0
+nginx-ingress-controller-def34   1/1     Running   k8s-worker-1
 ```
 
-If the Pods are running but old errors are still visible, restart the DaemonSet:
+Notice the **NODE** column.
+
+Now display the cluster nodes.
 
 ```bash
-kubectl rollout restart daemonset nginx-ingress-controller -n ingress
-kubectl rollout status daemonset nginx-ingress-controller -n ingress
+kubectl get nodes -o wide
 ```
+
+Example:
+
+```text
+NAME              STATUS   ROLES           INTERNAL-IP    EXTERNAL-IP
+k8s-controller-0  Ready    control-plane   10.0.1.10      35.91.57.164
+k8s-worker-0      Ready    <none>          10.0.2.20      44.245.201.133
+k8s-worker-1      Ready    <none>          10.0.3.20      54.191.18.212
+```
+
+Locate one of the worker nodes that is running an Ingress Controller Pod.
+
+Make a note of its **EXTERNAL-IP**.
+
+For example:
+
+```text
+44.245.201.133
+```
+
+This worker node public IP will be used throughout the remainder of the lab.
+
+### Behind the Scenes
+
+A very common mistake is to use the public IP address of the Kubernetes controller node because that is where `kubectl` is being executed.
+
+However, browser traffic never passes through the controller node.
+
+The request enters the cluster through one of the worker nodes hosting an Ingress Controller Pod.
+
+Using the controller node's public IP will usually result in connection failures.
 
 ---
 
-# Phase 2 – Determine the Public IP Address
+# Phase 2 – Create the Hostname
 
-The hostname used by the Ingress must resolve to the public IP address of the cluster node.
+The hostname used by the Ingress must resolve to the public IP address of the worker node.
 
-Display the public IP address:
+Using the public IP identified in the previous phase, construct the following hostname:
+
+```text
+webserver.<WORKER-PUBLIC-IP>.sslip.io
+```
+
+Example:
+
+```text
+webserver.44.245.201.133.sslip.io
+```
+
+The `sslip.io` service automatically resolves hostnames containing an IP address back to that IP address.
+
+(Optional) Verify that the hostname resolves correctly.
 
 ```bash
-curl ifconfig.io
+nslookup webserver.<WORKER-PUBLIC-IP>.sslip.io
 ```
 
-Make a note of the returned address.
+or
 
-For example:
-
-```text
-35.91.57.164
+```bash
+getent hosts webserver.<WORKER-PUBLIC-IP>.sslip.io
 ```
 
-You will use this address with `sslip.io`.
+You should see the worker node public IP returned.
 
-For example:
-
-```text
-webserver.35.91.57.164.sslip.io
-```
-
-`sslip.io` resolves a hostname containing an IP address back to that IP address.
+If the hostname does not resolve correctly, check that the IP address has been entered accurately before continuing.
 
 ---
 
 # Phase 3 – Create the Ingress Resource
 
-Create a new file:
+## Why?
+
+The Ingress resource defines how HTTP requests should be routed to the application.
+
+Although the NGINX Ingress Controller is running in the **ingress** namespace, the Ingress resource itself will be created in the **webserver** namespace.
+
+This is because the backend Service also exists in the **webserver** namespace.
+
+Keeping the Ingress alongside its backend Service is the simplest and most common Kubernetes design.
+
+Create a new file.
 
 ```bash
 nano ingress.yaml
 ```
 
-Add the following manifest, replacing `<PUBLIC-IP>` with the address returned in the previous phase:
+Replace **<WORKER-PUBLIC-IP>** with the worker node public IP identified in the previous phase.
 
 ```yaml
 apiVersion: networking.k8s.io/v1
@@ -168,7 +218,7 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-  - host: webserver.<PUBLIC-IP>.sslip.io
+  - host: webserver.<WORKER-PUBLIC-IP>.sslip.io
     http:
       paths:
       - path: /
@@ -180,177 +230,300 @@ spec:
               number: 8080
 ```
 
-Save the file and exit `nano`.
-
-Apply the Ingress:
+Apply the manifest.
 
 ```bash
 kubectl apply -f ingress.yaml
 ```
 
-Verify it:
+Verify that the Ingress has been created.
+
+```bash
+kubectl get ingress -n webserver
+```
+
+Display the full configuration.
+
+```bash
+kubectl describe ingress new-ingress -n webserver
+```
+
+You should see:
+
+- The correct hostname.
+- The backend Service.
+- One or more backend Pod addresses.
+
+For example:
+
+```text
+Rules:
+  Host
+  ----
+  webserver.44.245.201.133.sslip.io
+
+Backends
+webserver:8080
+10.244.1.10:8080
+10.244.2.15:8080
+...
+```
+
+Unlike previous attempts, you should **not** see:
+
+```text
+<error: endpoints "webserver" not found>
+```
+
+### Behind the Scenes
+
+The backend specified in the Ingress is:
+
+```yaml
+backend:
+  service:
+    name: webserver
+```
+
+Because the Ingress itself lives in the **webserver** namespace, Kubernetes resolves this as:
+
+```text
+Service:
+    webserver
+
+Namespace:
+    webserver
+```
+
+That Service already exists and has healthy endpoints.
+
+The Ingress Controller can therefore build a valid routing configuration immediately.
+
+---
+
+# Phase 4 – Find the NodePort
+
+## Why?
+
+In a cloud Kubernetes cluster, an Ingress Controller is normally exposed through a cloud Load Balancer.
+
+This training environment does not provide an external load balancer.
+
+Instead, the Ingress Controller is exposed using a **NodePort** Service.
+
+Display the Services running in the **ingress** namespace.
+
+```bash
+kubectl get svc -n ingress
+```
+
+Example:
+
+```text
+NAME                       TYPE       PORT(S)
+nginx-ingress-controller   NodePort   80:31147/TCP
+```
+
+Notice the HTTP mapping.
+
+```text
+80:31147/TCP
+```
+
+Port **80** is the Service port.
+
+Port **31147** is the NodePort.
+
+The NodePort is the port that browsers will use.
+
+Make a note of this value.
+
+---
+
+### Behind the Scenes
+
+NodePorts expose a Service on every worker node.
+
+Traffic therefore follows this path:
+
+```text
+Browser
+      │
+      ▼
+Worker Public IP
+      │
+      ▼
+NodePort
+      │
+      ▼
+Ingress Controller Service
+      │
+      ▼
+Ingress Controller Pod
+```
+
+Because the Ingress Controller runs as a DaemonSet, every worker node can receive traffic.
+
+---
+
+# Phase 5 – Publish the Application
+
+Open a browser.
+
+Browse to:
+
+```text
+http://webserver.<WORKER-PUBLIC-IP>.sslip.io:<NODEPORT>
+```
+
+Example:
+
+```text
+http://webserver.44.245.201.133.sslip.io:31147
+```
+
+You should now see the default NGINX welcome page.
+
+The application can also be tested using curl.
+
+```bash
+curl http://webserver.<WORKER-PUBLIC-IP>.sslip.io:<NODEPORT>
+```
+
+Example output:
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+<title>Welcome to nginx!</title>
+...
+```
+
+Congratulations.
+
+Your application is now accessible from outside the Kubernetes cluster.
+
+---
+
+### Behind the Scenes
+
+At this point, the complete request path is operational.
+
+```text
+Browser
+      │
+      ▼
+webserver.44.245.201.133.sslip.io
+      │
+      ▼
+sslip.io DNS
+      │
+      ▼
+Worker Node Public IP
+      │
+      ▼
+NodePort
+      │
+      ▼
+NGINX Ingress Controller
+      │
+      ▼
+webserver Service
+      │
+      ▼
+webserver Pods
+```
+
+Each component has a specific responsibility.
+
+| Component | Responsibility |
+|-----------|----------------|
+| Browser | Sends the HTTP request |
+| sslip.io | Resolves the hostname |
+| Worker Node | Receives the TCP connection |
+| NodePort | Forwards traffic to the Service |
+| Ingress Controller | Matches the hostname and path |
+| ClusterIP Service | Selects the application Pods |
+| Pods | Process the HTTP request |
+
+Understanding this request path makes troubleshooting much easier because each component can be verified independently.
+
+---
+
+# Phase 6 – Verify the Platform
+
+Now that the application is accessible, verify each component of the request path.
+
+## 1. Verify the Ingress Controller
+
+```bash
+kubectl get pods -n ingress
+```
+
+All Ingress Controller Pods should be **Running**.
+
+---
+
+## 2. Verify the Ingress
 
 ```bash
 kubectl get ingress -n webserver
 kubectl describe ingress new-ingress -n webserver
 ```
 
-The backend should show the `webserver` Service and its Pod endpoints.
-
-It should not show:
-
-```text
-<error: endpoints "webserver" not found>
-```
-
----
-
-# Behind the Scenes
-
-The Ingress resource is in the `webserver` namespace.
-
-Its backend contains:
-
-```yaml
-service:
-  name: webserver
-```
-
-Kubernetes therefore looks for this Service:
-
-```text
-Service: webserver
-Namespace: webserver
-```
-
-That Service already exists and has endpoints for the five running webserver Pods.
-
-The NGINX Ingress Controller can run in a different namespace. It watches Ingress resources and configures routing for them.
-
----
-
-# Phase 4 – Find the Ingress Controller NodePort
-
-List the Services in the `ingress` namespace:
-
-```bash
-kubectl get svc -n ingress
-```
-
-Locate the HTTP port mapping.
-
-For example:
-
-```text
-80:30486/TCP
-```
-
-The high-numbered port after the colon is the NodePort.
-
-In this example, the NodePort is:
-
-```text
-30486
-```
-
----
-
-# Phase 5 – Test the Published Application
-
-Open the following address in a browser:
-
-```text
-http://webserver.<PUBLIC-IP>.sslip.io:<NODEPORT>
-```
-
-For example:
-
-```text
-http://webserver.35.91.57.164.sslip.io:30486
-```
-
-You should see the NGINX welcome page.
-
-You can also test from the command line:
-
-```bash
-curl http://webserver.<PUBLIC-IP>.sslip.io:<NODEPORT>
-```
-
-A successful response should contain HTML from the NGINX welcome page.
-
----
-
-# Phase 6 – Verify the Complete Request Path
-
-Check each part of the request path.
-
-## 1. Ingress Controller Pods
-
-```bash
-kubectl get pods -n ingress
-```
-
-The controller Pods should be `Running`.
-
-## 2. Ingress Controller Service
-
-```bash
-kubectl get svc -n ingress
-```
-
-Confirm that port 80 is exposed through a NodePort.
-
-## 3. Ingress Resource
-
-```bash
-kubectl describe ingress new-ingress -n webserver
-```
-
 Confirm:
 
-- The host matches the `sslip.io` hostname.
-- The backend is `webserver:8080`.
-- Pod endpoint addresses are displayed.
+- The hostname matches the worker node public IP.
+- The backend Service is `webserver:8080`.
+- Backend endpoints are displayed.
 
-## 4. Backend Service
+---
+
+## 3. Verify the Service
 
 ```bash
 kubectl get svc webserver -n webserver
 kubectl describe svc webserver -n webserver
 ```
 
-Confirm that the Service exposes TCP 8080.
+Confirm the Service exposes TCP port **8080**.
 
-## 5. Service Endpoints
+---
+
+## 4. Verify the Endpoints
 
 ```bash
 kubectl get endpoints webserver -n webserver
 ```
 
-Confirm that endpoint addresses are listed.
+You should see the IP addresses of the five running Pods.
 
-## 6. Webserver Pods
+---
+
+## 5. Verify the Pods
 
 ```bash
 kubectl get pods -n webserver
 ```
 
-Confirm that all five Pods are running.
+All Pods should be **Running**.
 
-## 7. Webserver NetworkPolicy
+---
+
+## 6. Verify the NetworkPolicy
 
 ```bash
 kubectl describe networkpolicy webserver-netpol -n webserver
 ```
 
-Confirm that TCP 8080 is allowed from namespaces labelled:
+Confirm that TCP port **8080** is allowed from namespaces labelled:
 
 ```text
 app=nginx-ingress
 ```
 
-Check the label on the `ingress` namespace:
+Confirm that the ingress namespace has this label.
 
 ```bash
 kubectl get namespace ingress --show-labels
@@ -360,171 +533,155 @@ kubectl get namespace ingress --show-labels
 
 # Troubleshooting
 
-Follow the request path in order.
+Follow the request path from the browser towards the application.
 
-## The hostname does not resolve
+## Browser cannot connect
 
-Check the public IP:
+Check that you are using:
 
-```bash
-curl ifconfig.io
-```
-
-Confirm that the IP embedded in the hostname is correct.
-
-## The connection is refused or times out
-
-Check the NodePort:
+- The **worker node public IP**
+- The correct **NodePort**
 
 ```bash
 kubectl get svc -n ingress
 ```
 
-Confirm that you are using the HTTP NodePort associated with port 80.
+Do **not** use the controller node public IP.
 
-Also confirm that the cloud firewall or security group allows inbound access to that NodePort.
+---
 
-## The Ingress has no backend endpoints
+## DNS problem
 
-Run:
+Verify the hostname resolves correctly.
 
 ```bash
-kubectl describe ingress new-ingress -n webserver
-kubectl get svc webserver -n webserver
-kubectl get endpoints webserver -n webserver
+nslookup webserver.<WORKER-PUBLIC-IP>.sslip.io
 ```
 
-Confirm that the Ingress and Service are both in the `webserver` namespace.
-
-## The Ingress Controller is not responding to changes
-
-Check the logs:
+or
 
 ```bash
-kubectl logs -n ingress   -l app.kubernetes.io/name=nginx-ingress   --since=5m   --prefix
+getent hosts webserver.<WORKER-PUBLIC-IP>.sslip.io
 ```
 
-If the logs show repeated API server timeouts, confirm that no egress NetworkPolicy exists in the `ingress` namespace:
+The hostname should resolve to the worker node public IP.
+
+---
+
+## HTTP 404
+
+Check the hostname configured in the Ingress.
 
 ```bash
-kubectl get networkpolicy -n ingress
+kubectl get ingress new-ingress -n webserver \
+-o jsonpath='{.spec.rules[0].host}'; echo
 ```
 
-Delete any old ingress egress policy:
+The hostname in the browser and the hostname in the Ingress must be identical.
+
+---
+
+## HTTP 502 or 503
+
+Check the backend Service and its endpoints.
 
 ```bash
-kubectl delete networkpolicy ingress-netpol -n ingress --ignore-not-found
-```
-
-Restart the controller:
-
-```bash
-kubectl rollout restart daemonset nginx-ingress-controller -n ingress
-kubectl rollout status daemonset nginx-ingress-controller -n ingress
-```
-
-## The Ingress returns an NGINX error page
-
-Check the backend application:
-
-```bash
-kubectl get pods -n webserver
 kubectl get svc,endpoints -n webserver
-kubectl logs -n webserver -l app=webserver
+kubectl get pods -n webserver
 ```
+
+If the Service has no endpoints, the Ingress cannot reach the application.
+
+---
+
+## Ingress not updating
+
+Check the controller logs.
+
+```bash
+kubectl logs -n ingress \
+-l app.kubernetes.io/name=nginx-ingress \
+--since=5m
+```
+
+Look for configuration errors.
 
 ---
 
 # Final Expected State
 
-## Webserver workload
-
 ```bash
-kubectl get deployment,pods,svc -n webserver
-```
-
-Expected:
-
-- One Deployment.
-- Five running Pods.
-- One ClusterIP Service on TCP 8080.
-
-## Ingress resource
-
-```bash
-kubectl get ingress -n webserver
-```
-
-Expected:
-
-```text
-new-ingress
-```
-
-## Ingress Controller
-
-```bash
-kubectl get daemonset,pods,svc -n ingress
-```
-
-Expected:
-
-- A healthy DaemonSet.
-- Running controller Pods.
-- A Service exposing port 80 through a NodePort.
-
-## NetworkPolicies
-
-```bash
+kubectl get deploy,pods,svc,ingress -n webserver
+kubectl get pods,svc -n ingress
 kubectl get networkpolicy -A
 ```
 
 Expected:
 
-```text
-webserver   webserver-netpol
-```
+## webserver namespace
 
-There should be no `ingress-netpol` in the `ingress` namespace.
+- Deployment `webserver`
+- Five running Pods
+- ClusterIP Service `webserver`
+- Ingress `new-ingress`
+
+## ingress namespace
+
+- Running NGINX Ingress Controller Pods
+- NodePort Service
+
+## NetworkPolicies
+
+- `webserver-netpol`
+
+There should be **no** `ingress-netpol`.
 
 ---
 
 # Knowledge Check
 
-1. Why is the Ingress resource created in the `webserver` namespace?
-2. Does the Ingress Controller have to run in the same namespace as the Ingress resource?
+1. Why is the worker node public IP used instead of the controller node?
+
+2. Why is the Ingress resource created in the `webserver` namespace?
+
 3. What is the purpose of the NodePort?
-4. Why is the `sslip.io` hostname included in the Ingress rule?
-5. What is the complete request path from the browser to a webserver Pod?
-6. Why does the webserver NetworkPolicy still allow the request?
+
+4. What role does `sslip.io` perform?
+
+5. Describe the complete request path from the browser to a Pod.
 
 ---
 
 # Summary
 
-You have successfully published the governed webserver application through the NGINX Ingress Controller.
+You have successfully published a governed application through the NGINX Ingress Controller.
 
-The Ingress resource was created in the `webserver` namespace alongside its backend Service, while the Ingress Controller remained in its dedicated `ingress` namespace.
-
-The final request path is:
+The request path is now:
 
 ```text
 Browser
-  |
-  v
-sslip.io hostname
-  |
-  v
-Cluster node public IP and NodePort
-  |
-  v
+        │
+        ▼
+sslip.io
+        │
+        ▼
+Worker Public IP
+        │
+        ▼
+NodePort
+        │
+        ▼
 NGINX Ingress Controller
-  |
-  v
+        │
+        ▼
 webserver ClusterIP Service
-  |
-  v
-webserver Pods on TCP 8080
+        │
+        ▼
+webserver Pods
 ```
 
-The application remains protected by the NetworkPolicy created in Lab 6a.1, which only permits TCP 8080 traffic from the labelled `ingress` namespace.
+Although the application is now externally accessible, it remains protected by the NetworkPolicy created in Lab 6a.1.
+
+This completes Module 6a and provides the foundation for the Kyverno policy labs that follow.
+
+
