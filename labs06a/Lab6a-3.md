@@ -337,7 +337,7 @@ Behind the Scenes
 
 The request path is:
 
-``` bash
+``` text
 Browser
         │
         ▼
@@ -370,27 +370,30 @@ Fortunately, Kubernetes still allocates NodePorts, allowing us to access the Ing
 
 Display the Service:
 
+``` bash
 kubectl get svc -n ingress
+```
 
 Example:
 
+```bash
 NAME                       TYPE           CLUSTER-IP      EXTERNAL-IP   PORT(S)
 nginx-ingress-controller   LoadBalancer   10.104.181.84  <pending>     80:32224/TCP,443:30385/TCP
+```
 
 Although the Service type is LoadBalancer, notice that Kubernetes has also assigned NodePorts.
 
-For HTTP:
+In this example (yours will differ), for HTTP:
 
-80:32224/TCP
-80 is the Service port.
-32224 is the NodePort.
+80:32224/TCP - 80 is the Service port - 32224 is the NodePort.
 
 The NodePort is the port that browsers will use throughout this lab.
 
-Behind the Scenes
+## Behind the Scenes
 
 The request path is:
 
+``` text 
 Browser
         │
         ▼
@@ -404,76 +407,9 @@ LoadBalancer Service
         │
         ▼
 Ingress Controller Pod
+```
 
 If this cluster were running with a cloud load balancer, the browser would connect to the cloud-assigned public IP instead of directly to the NodePort.
-
-
-
-###########
-# Phase 4 – Find the NodePort
-
-## Why?
-
-In a cloud Kubernetes cluster, an Ingress Controller is normally exposed through a cloud Load Balancer.
-
-This training environment does not provide an external load balancer.
-
-Instead, the Ingress Controller is exposed using a **NodePort** Service.
-
-Display the Services running in the **ingress** namespace.
-
-```bash
-kubectl get svc -n ingress
-```
-
-Example:
-
-```text
-NAME                       TYPE       PORT(S)
-nginx-ingress-controller   NodePort   80:31147/TCP
-```
-
-Notice the HTTP mapping.
-
-```text
-80:31147/TCP
-```
-
-Port **80** is the Service port.
-
-Port **31147** is the NodePort.
-
-The NodePort is the port that browsers will use.
-
-Make a note of this value.
-
----
-
-### Behind the Scenes
-
-NodePorts expose a Service on every worker node.
-
-Traffic therefore follows this path:
-
-```text
-Browser
-      │
-      ▼
-Worker Public IP
-      │
-      ▼
-NodePort
-      │
-      ▼
-Ingress Controller Service
-      │
-      ▼
-Ingress Controller Pod
-```
-
-Because the Ingress Controller runs as a DaemonSet, every worker node can receive traffic.
-
----
 
 # Phase 5 – Publish the Application
 
@@ -488,7 +424,7 @@ http://webserver.<WORKER-PUBLIC-IP>.sslip.io:<NODEPORT>
 Example:
 
 ```text
-http://webserver.44.245.201.133.sslip.io:31147
+http://webserver.44.245.201.133.sslip.io:32224
 ```
 
 You should now see the default NGINX welcome page.
