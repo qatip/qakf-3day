@@ -130,11 +130,11 @@ k8s-controller-0  Ready    control-plane   10.0.1.10      <none>
 k8s-worker-0      Ready    <none>          10.0.2.20      <none>
 k8s-worker-1      Ready    <none>          10.0.3.20      <none>
 ```
-Switch to your EC2 dashboard in the AWS console and identify the Public IP address of one of youe Worker nodes:
+Switch to your EC2 dashboard in the AWS console and identify the Public IP address of one of your **Worker** nodes:
 
 ![node_ips](../diagrams/node-ips.png)
 
-Locate one of the worker nodes that is running an Ingress Controller Pod.
+Locate one of the **Worker** nodes that is running an Ingress Controller Pod.
 
 For example:
 
