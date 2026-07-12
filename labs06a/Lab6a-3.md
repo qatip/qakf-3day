@@ -160,7 +160,7 @@ Using the controller node's public IP will usually result in connection failures
 
 The hostname used by the Ingress must resolve to the public IP address of the worker node.
 
-Using the public IP identified in the previous phase, construct the following hostname:
+Using the public IP identified in the previous phase, construct the following hostname for later use:
 
 ```text
 webserver.<WORKER-PUBLIC-IP>.sslip.io
@@ -169,7 +169,7 @@ webserver.<WORKER-PUBLIC-IP>.sslip.io
 Example:
 
 ```text
-webserver.44.245.201.133.sslip.io
+webserver.54.200.71.25.sslip.io
 ```
 
 The `sslip.io` service automatically resolves hostnames containing an IP address back to that IP address.
