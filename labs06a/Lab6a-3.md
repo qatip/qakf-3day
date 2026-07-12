@@ -270,13 +270,6 @@ webserver:8080
 10.244.1.10:8080
 10.244.2.15:8080
 ...
-```
-
-Unlike previous attempts, you should **not** see:
-
-```text
-<error: endpoints "webserver" not found>
-```
 
 ### Behind the Scenes
 
@@ -304,6 +297,117 @@ The Ingress Controller can therefore build a valid routing configuration immedia
 
 ---
 
+# Phase 4 – Find the NodePort
+## Why?
+
+The NGINX Ingress Controller was installed using the default Helm chart.
+
+The chart creates a LoadBalancer Service.
+
+In cloud environments such as AWS, Azure or Google Cloud, this Service would automatically receive a public IP address from the cloud provider.
+
+Our training environment does not include a cloud load balancer, so the Service remains in the Pending state.
+
+Fortunately, Kubernetes still allocates NodePorts, allowing us to access the Ingress Controller directly through the worker nodes.
+
+Display the Service:
+
+``` bash
+kubectl get svc -n ingress
+```
+
+Example:
+
+``` bash 
+NAME                       TYPE           CLUSTER-IP      EXTERNAL-IP   PORT(S)
+nginx-ingress-controller   LoadBalancer   10.104.181.84  <pending>     80:32224/TCP,443:30385/TCP
+```
+
+Although the Service type is LoadBalancer, notice that Kubernetes has also assigned NodePorts.
+
+For HTTP:
+
+80:32224/TCP
+80 is the Service port.
+32224 is the NodePort.
+
+The NodePort is the port that browsers will use throughout this lab.
+
+Behind the Scenes
+
+The request path is:
+
+Browser
+        │
+        ▼
+Worker Public IP
+        │
+        ▼
+NodePort (32224)
+        │
+        ▼
+LoadBalancer Service
+        │
+        ▼
+Ingress Controller Pod
+
+If this cluster were running with a cloud load balancer, the browser would connect to the cloud-assigned public IP instead of directly to the NodePort.
+
+Phase 4 – Find the NodePort
+Why?
+
+The NGINX Ingress Controller was installed using the default Helm chart.
+
+The chart creates a LoadBalancer Service.
+
+In cloud environments such as AWS, Azure or Google Cloud, this Service would automatically receive a public IP address from the cloud provider.
+
+Our training environment does not include a cloud load balancer, so the Service remains in the Pending state.
+
+Fortunately, Kubernetes still allocates NodePorts, allowing us to access the Ingress Controller directly through the worker nodes.
+
+Display the Service:
+
+kubectl get svc -n ingress
+
+Example:
+
+NAME                       TYPE           CLUSTER-IP      EXTERNAL-IP   PORT(S)
+nginx-ingress-controller   LoadBalancer   10.104.181.84  <pending>     80:32224/TCP,443:30385/TCP
+
+Although the Service type is LoadBalancer, notice that Kubernetes has also assigned NodePorts.
+
+For HTTP:
+
+80:32224/TCP
+80 is the Service port.
+32224 is the NodePort.
+
+The NodePort is the port that browsers will use throughout this lab.
+
+Behind the Scenes
+
+The request path is:
+
+Browser
+        │
+        ▼
+Worker Public IP
+        │
+        ▼
+NodePort (32224)
+        │
+        ▼
+LoadBalancer Service
+        │
+        ▼
+Ingress Controller Pod
+
+If this cluster were running with a cloud load balancer, the browser would connect to the cloud-assigned public IP instead of directly to the NodePort.
+
+
+
+###########
 # Phase 4 – Find the NodePort
 
 ## Why?
