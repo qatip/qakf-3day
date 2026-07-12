@@ -325,7 +325,7 @@ nginx-ingress-controller   LoadBalancer   10.104.181.84  <pending>     80:32224/
 
 Although the Service type is LoadBalancer, notice that Kubernetes has also assigned NodePorts.
 
-For HTTP: 80 is the Service port - 32224 is the NodePort.
+For HTTP: 80 is the Service port - 32224 is the NodePort (yours will differ).
 
 The NodePort is the port that browsers will use throughout this lab.
 
