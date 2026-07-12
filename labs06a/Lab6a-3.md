@@ -263,7 +263,7 @@ For example:
 Rules:
   Host
   ----
-  webserver.44.245.201.133.sslip.io
+  webserver.54.200.71.25.sslip.io
 
 Backends
 webserver:8080
@@ -364,7 +364,7 @@ http://webserver.<WORKER-PUBLIC-IP>.sslip.io:<NODEPORT>
 Example:
 
 ```text
-http://webserver.44.245.201.133.sslip.io:32224
+http://webserver.54.200.71.25.sslip.io:32224
 ```
 
 You should now see the default NGINX welcome page.
@@ -399,7 +399,7 @@ At this point, the complete request path is operational.
 Browser
       │
       ▼
-webserver.44.245.201.133.sslip.io
+webserver.54.200.71.25.sslip.io
       │
       ▼
 sslip.io DNS
