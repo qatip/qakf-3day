@@ -276,7 +276,37 @@ Mmmmm, well we now have 5 pods, not the 10 we were hoping for, and the container
 
 The standard `nginx:alpine` image expects to run as root, conflicting with the namespace security policy.
 
-Update deploy.yaml and replace the current image, also update the container port from 80 to 8080:
+How can we find this out ? Lets look at one of the deployed pods:
+
+```bash
+kubectl get pods -n webserver
+```
+
+A list of your running pods will be shown, all with an error message 'CreateContainerConfigError'
+
+Example list, yours will be different;
+
+webserver-79f6975594-5kslm
+werver-79f6975594-67mqf
+webserver-79f6975594-dfbbh
+webserver-79f6975594-dwdsf
+webserver-79f6975594-mcsfb
+
+Ask Kubernetes to describe one of the pods;
+
+``` bash
+kubectl describe pod -n webserver {pod-name}
+```
+
+Example;
+
+kubectl describe pod -n webserver webserver-79f6975594-5kslm
+
+Scroll down to find the cause of the issue;
+
+'Error: container has runAsNonRoot and image will run as root '
+
+Update deploy.yaml and replace the current image for one that does not run as root, also updating the container port from 80 to 8080:
 
 ```yaml
 apiVersion: apps/v1

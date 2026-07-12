@@ -165,11 +165,10 @@ A ResourceQuota does not stop you creating a Deployment. Instead, it prevents Po
 
 By default, many Kubernetes environments allow unrestricted Pod-to-Pod communication. NetworkPolicies allow administrators to adopt a least-privilege model by explicitly defining permitted traffic.
 
-Copy the starter manifests:
+Copy the provided starter manifest:
 
 ```bash
 cp ~/qakf-3day/solutions/lab6a/netpol_webserver1.yaml netpol_webserver.yaml
-cp ~/qakf-3day/solutions/lab6a/netpol_ingress.yaml netpol_ingress.yaml
 ```
 
 Use nano to edit **netpol_webserver.yaml** so that only traffic from the **ingress** namespace is permitted on TCP port **8080**...
