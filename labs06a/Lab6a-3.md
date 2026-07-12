@@ -337,6 +337,7 @@ Behind the Scenes
 
 The request path is:
 
+``` bash
 Browser
         │
         ▼
@@ -350,6 +351,7 @@ LoadBalancer Service
         │
         ▼
 Ingress Controller Pod
+```
 
 If this cluster were running with a cloud load balancer, the browser would connect to the cloud-assigned public IP instead of directly to the NodePort.
 
