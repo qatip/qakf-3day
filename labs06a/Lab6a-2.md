@@ -287,10 +287,15 @@ A list of your running pods will be shown, all with an error message 'CreateCont
 Example list, yours will be different;
 
 webserver-79f6975594-5kslm
+
 werver-79f6975594-67mqf
+
 webserver-79f6975594-dfbbh
+
 webserver-79f6975594-dwdsf
+
 webserver-79f6975594-mcsfb
+
 
 Ask Kubernetes to describe one of the pods;
 
