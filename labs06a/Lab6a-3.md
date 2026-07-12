@@ -126,19 +126,20 @@ Example:
 
 ```text
 NAME              STATUS   ROLES           INTERNAL-IP    EXTERNAL-IP
-k8s-controller-0  Ready    control-plane   10.0.1.10      35.91.57.164
-k8s-worker-0      Ready    <none>          10.0.2.20      44.245.201.133
-k8s-worker-1      Ready    <none>          10.0.3.20      54.191.18.212
+k8s-controller-0  Ready    control-plane   10.0.1.10      <none>
+k8s-worker-0      Ready    <none>          10.0.2.20      <none>
+k8s-worker-1      Ready    <none>          10.0.3.20      <none>
 ```
+Switch to your EC2 dashboard in the AWS console and identify the Public IP address of one of youe Worker nodes:
+
+![node_ips](../diagrams/node-ips.png)
 
 Locate one of the worker nodes that is running an Ingress Controller Pod.
-
-Make a note of its **EXTERNAL-IP**.
 
 For example:
 
 ```text
-44.245.201.133
+54.200.71.25
 ```
 
 This worker node public IP will be used throughout the remainder of the lab.
