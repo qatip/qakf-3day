@@ -102,8 +102,7 @@ Note that CoreDNS tried a lot of variations of the name `backend` but one of the
 5. There's only one empty placeholder remaining in our simple front end application, the data it receives from the backing service, obtained by performing an nslookup, just as we did using busybox. Let's finish that off now by applying a copy of the frontend deployment created in lab3 into both namespaces:
 
 ```bash
-cp ./qakf-3day/solutions/lab3/lab3frontend2.yaml lab4frontend.yaml && \
-sed -i 's/lab3/lab4/g' lab4frontend.yaml
+cp ./qakf-3day/solutions/lab3/lab3frontend2.yaml lab4frontend.yaml && sed -i 's/lab3/lab4/g' lab4frontend.yaml
 kubectl apply -n production -f lab4frontend.yaml
 kubectl apply -n development -f lab4frontend.yaml
 ```
